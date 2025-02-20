@@ -63,7 +63,7 @@ const Login = () => {
         display: "flex", 
         justifyContent: "center", 
         alignItems: "center", 
-        padding: 0,
+        padding: 2,
         margin: 0,
       }}
     >
