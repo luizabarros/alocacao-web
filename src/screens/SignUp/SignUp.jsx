@@ -1,19 +1,16 @@
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+
 import { Typography, Container, Paper } from '@mui/material';
+
 import InputField from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
+
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
 
-interface IRegister {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  name: string;
-}
+import { toast, ToastContainer } from 'react-toastify';
 
 const schema = yup.object().shape({
   name: yup.string().required("Nome é obrigatório"),
@@ -41,7 +38,7 @@ const Register = () => {
   const { registerUser } = useAuth();
   const navigate = useNavigate();
 
-  const onSubmit = async (data: IRegister) => {
+  const onSubmit = async (data) => {
     try {
       await registerUser(data.email, data.password, data.name);
       toast.success('Cadastro feito com sucesso');

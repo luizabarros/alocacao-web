@@ -1,9 +1,33 @@
-import { Box, Drawer, List, ListItem, ListItemText, AppBar, Toolbar, Typography, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Button, IconButton, createTheme, ThemeProvider } from '@mui/material';
+import { 
+  Box, 
+  Drawer, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  CssBaseline, 
+  Dialog, 
+  DialogActions, 
+  DialogContent,
+  DialogTitle, 
+  Button, 
+  IconButton, 
+  createTheme, 
+  ThemeProvider 
+} from '@mui/material';
+
 import MenuIcon from '@mui/icons-material/Menu';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
-import { useState } from 'react';
 import Dashboard from './Dashboard/Dashboard';
+import RoomManagement from './RoomManagement/RoomManagement';
+import Subject from './Subject/Subject';
+import Class from './Class/Class';
+import Room from './Room/Room';
+
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const HomePage = () => {
@@ -13,15 +37,25 @@ const HomePage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
+
+  const menuItems = [
+    { name: 'home', label: 'Home', isAdminScreen: false },
+    { name: 'gerenciar-salas', label: 'Gerenciamento das Alocações', isAdminScreen: false },
+    { name: 'disciplina', label: 'Disciplinas', isAdminScreen: true },
+    { name: 'turma', label: 'Turmas', isAdminScreen: true },
+    { name: 'sala', label: 'Salas', isAdminScreen: true },
+    { name: 'sair', label: 'Sair', isAdminScreen: false },
+  ];
 
   const toggleDrawer = () => {
     setOpen(!open); 
   };
 
-  const handleItemClick = (item: string) => {
-    setSelectedItem(item);
-    if (item === 'sair') {
+  const handleItemClick = (item) => {
+    setSelectedItem(item.name);
+
+    if (item.name === 'sair') {
       setOpenDialog(true);
     }
   };
@@ -39,12 +73,6 @@ const HomePage = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  const menuItems = [
-    { name: 'home', label: 'Home' },
-    { name: 'gerenciar-salas', label: 'Gerenciar Salas' },
-    { name: 'sair', label: 'Sair' },
-  ];
-
   const theme = createTheme({
     palette: {
       mode: isDarkMode ? 'dark' : 'light',
@@ -60,7 +88,7 @@ const HomePage = () => {
           <Toolbar>
             <MenuIcon onClick={toggleDrawer} />
             <Typography ml={3}>
-              Gerenciamento de Alocação
+              Gerenciamento de Alocação {isAdmin && '(Administrador)'}
             </Typography>
             <IconButton onClick={handleThemeChange} sx={{ marginLeft: 'auto' }} color="inherit">
               {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
@@ -84,9 +112,10 @@ const HomePage = () => {
         >
           <List>
             {menuItems.map((item) => (
+              item.isAdminScreen && !isAdmin ? null :
               <ListItem
                 key={item.name}
-                onClick={() => handleItemClick(item.name)}
+                onClick={() => handleItemClick(item)}
                 sx={{
                   backgroundColor: selectedItem === item.name && isDarkMode 
                     ? '#555555'
@@ -110,7 +139,19 @@ const HomePage = () => {
             marginTop: '60px'
           }}
         >
-          <Dashboard />
+          {
+            selectedItem === 'home' ? (
+              <Dashboard />
+            ) : selectedItem === 'gerenciar-salas' ? (
+              <RoomManagement />
+            ) : selectedItem === 'disciplina' ? (
+              <Subject/>
+            ) : selectedItem === 'turma' ? (
+              <Class/>
+            ) : selectedItem === 'sala' ? (
+              <Room/>
+            ) : null
+          }
         </Box>
 
         <Dialog

@@ -47,26 +47,28 @@ const Dashboard = () => {
   const uniqueSubjects = [...new Set(classes.map(cls => cls.subject))];
   const uniqueTeachers = [...new Set(classes.map(cls => cls.teacher))];
 
+  const cardStyle = { backgroundColor: "#00b4d8" };
+
   return (
     <>
       <Container sx={{ marginTop: 4 }}>
         <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
           <Card>
-            <CardContent>
+            <CardContent sx={cardStyle}>
               <Typography variant="h5">
                 <School /> Salas: {totalRooms}
               </Typography>
             </CardContent>
           </Card>
           <Card>
-            <CardContent>
+            <CardContent sx={cardStyle}>
               <Typography variant="h5">
                 <Class /> Disciplinas: {totalSubjects}
               </Typography>
             </CardContent>
           </Card>
           <Card>
-            <CardContent>
+            <CardContent sx={cardStyle}>
               <Typography variant="h5">
                 <EventAvailable /> Turmas: {totalClasses}
               </Typography>

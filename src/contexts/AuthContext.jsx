@@ -1,20 +1,14 @@
 import { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface IAuthContext {
-  token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  registerUser: (email: string, password: string, name: string) => Promise<void>;
-}
+const AuthContext = createContext({});
 
-const AuthContext = createContext<IAuthContext>({} as IAuthContext);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('@ALOCACAO:token') || null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
-  const login = async (email: string, password: string) => {
+  const login = async (email, password) => {
     try {
       const response = await fetch('http://localhost:8080/professor/public/login', {
         method: 'POST',
@@ -29,7 +23,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const data = await response.json();
+
       setToken(data.token);
+      setIsAdmin(data.isAdmin);
+
       localStorage.setItem('@ALOCACAO:token', data.token);
       
     } catch (error) {
@@ -44,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/');
   };
 
-  const registerUser = async (email: string, password: string, name: string) => {
+  const registerUser = async (email, password, name) => {
     try {
       const response = await fetch('http://localhost:8080/professor/public/register', {
         method: 'POST',
@@ -65,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, registerUser }}>
+    <AuthContext.Provider value={{ token, login, logout, registerUser, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

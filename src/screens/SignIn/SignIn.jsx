@@ -1,18 +1,17 @@
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+
 import { Typography, Container, Paper } from '@mui/material';
+
 import InputField from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
+
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
 
-interface ILogin {
-  email: string;
-  password: string;
-}
+import { toast, ToastContainer } from 'react-toastify';
 
 const schema = yup.object().shape({
   email: yup.string().email("E-mail inválido").required("E-mail é obrigatório"),
@@ -37,7 +36,7 @@ const Login = () => {
     } 
   }, [navigate, token]);
 
-  const onSubmit = async (data: ILogin) => {
+  const onSubmit = async (data) => {
     try {
       await login(data.email, data.password);
       toast.success('Login feito com sucesso');
