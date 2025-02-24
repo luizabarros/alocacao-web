@@ -43,7 +43,6 @@ const HomePage = () => {
     { name: 'home', label: 'Home', isAdminScreen: false },
     { name: 'gerenciar-salas', label: 'Gerenciamento das Alocações', isAdminScreen: false },
     { name: 'disciplina', label: 'Disciplinas', isAdminScreen: true },
-    { name: 'turma', label: 'Turmas', isAdminScreen: true },
     { name: 'sala', label: 'Salas', isAdminScreen: true },
     { name: 'sair', label: 'Sair', isAdminScreen: false },
   ];
@@ -146,8 +145,6 @@ const HomePage = () => {
               <RoomManagement />
             ) : selectedItem === 'disciplina' ? (
               <Subject/>
-            ) : selectedItem === 'turma' ? (
-              <Class/>
             ) : selectedItem === 'sala' ? (
               <Room/>
             ) : null
