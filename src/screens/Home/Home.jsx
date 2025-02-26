@@ -24,7 +24,6 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Dashboard from './Dashboard/Dashboard';
 import RoomManagement from './RoomManagement/RoomManagement';
 import Subject from './Subject/Subject';
-import Class from './Class/Class';
 import Room from './Room/Room';
 
 import { useState } from 'react';

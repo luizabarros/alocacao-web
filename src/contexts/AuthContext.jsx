@@ -1,7 +1,15 @@
 import { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-const AuthContext = createContext({});
+const api = axios.create({
+  baseURL: 'http://localhost:8080/professor/public',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('@ALOCACAO:token') || null);
@@ -10,27 +18,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:8080/professor/public/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await api.post('/login', { email, password });
 
-      if (!response.ok) {
-        throw new Error('Erro ao fazer login');
-      }
+      setToken(response.data.token);
+      setIsAdmin(response.data.isAdmin);
 
-      const data = await response.json();
-
-      setToken(data.token);
-      setIsAdmin(data.isAdmin);
-
-      localStorage.setItem('@ALOCACAO:token', data.token);
+      localStorage.setItem('@ALOCACAO:token', response.data.token);
       
     } catch (error) {
-      console.error('Erro:', error);
+      console.error('Erro ao fazer login:', error.response?.data || error.message);
       throw error;
     }
   };
@@ -43,20 +39,9 @@ export const AuthProvider = ({ children }) => {
 
   const registerUser = async (email, password, name) => {
     try {
-      const response = await fetch('http://localhost:8080/professor/public/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao realizar cadastro');
-      }
-
+      await api.post('/register', { email, password, name });
     } catch (error) {
-      console.error('Erro:', error);
+      console.error('Erro ao realizar cadastro:', error.response?.data || error.message);
       throw error;
     }
   };

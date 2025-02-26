@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   Container,
   TextField,
@@ -16,6 +16,7 @@ import {
   Stack
 } from "@mui/material";
 import { toast, ToastContainer } from 'react-toastify';
+import { getRooms, createRoom, updateRoom, deleteRoom } from "../../../services/roomService";
 
 const Room = () => {
     const [room, setRoom] = useState([]);
@@ -25,27 +26,49 @@ const Room = () => {
     const [editingIndex, setEditingIndex] = useState(null);
     const [deleteIndex, setDeleteIndex] = useState(null);
 
-    const handleAddOrEdit = () => {
-      if (className) {  
+    
+    useEffect(() => {
+      getRooms()
+        .then(setRoom)
+        .catch(() => toast.error("Erro ao carregar salas"));
+    }, []);
+
+    const handleAddOrEdit = async () => {
+      if (!className) {
+        toast.error("Por favor, preencha o nome da turma!");
+        return;
+      }
+    
+      try {
         if (editingIndex !== null) {
-          const updatedRoom = [...room];
-          updatedRoom[editingIndex] = { className };  
-          setRoom(updatedRoom);
+    
+          const id = room[editingIndex].id;
+          const updatedRoom = await updateRoom(id, { name: className });
+    
+          const updatedRooms = [...room];
+          updatedRooms[editingIndex] = updatedRoom;
+          setRoom(updatedRooms);
           toast.success("Turma editada com sucesso!");
+    
         } else {
-          setRoom([...room, { className }]);  
+        
+          const newRoom = await createRoom({ name: className });
+          setRoom([...room, newRoom]);
           toast.success("Turma adicionada com sucesso!");
         }
-        setClassName("");  
+    
+        setClassName("");
         setOpenModal(false);
         setEditingIndex(null);
-      } else {
-        toast.error("Por favor, preencha o nome da turma!");
+    
+      } catch (error) {
+        toast.error("Erro ao salvar turma!");
       }
     };
+    
 
     const handleEdit = (index) => {
-      setClassName(room[index].className); 
+      setClassName(room[index].name); 
       setEditingIndex(index);
     };
 
@@ -54,13 +77,22 @@ const Room = () => {
       setOpenDeleteModal(true);
     };
 
-    const handleDeleteConfirm = () => {
-      const updatedRoom = room.filter((_, i) => i !== deleteIndex);
-      setRoom(updatedRoom);
+    const handleDeleteConfirm = async () => {
+      try {
+        const id = room[deleteIndex].id;
+        await deleteRoom(id);
+    
+        setRoom(room.filter((_, i) => i !== deleteIndex));
+        toast.success("Turma deletada com sucesso!");
+    
+      } catch (error) {
+        toast.error("Erro ao deletar turma!");
+      }
+    
       setOpenDeleteModal(false);
       setDeleteIndex(null);
-      toast.success("Turma deletada com sucesso!");
     };
+
 
     const handleDeleteCancel = () => {
       setOpenDeleteModal(false);

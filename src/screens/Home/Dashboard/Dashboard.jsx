@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Typography,
   Container,
@@ -18,13 +19,14 @@ import {
   Paper,
 } from "@mui/material";
 import { School, Class, EventAvailable } from "@mui/icons-material";
+import { getRooms } from "../../../services/roomService";
 
 const Dashboard = () => {
   const [roomFilter, setRoomFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [teacherFilter, setTeacherFilter] = useState("");
+  const [rooms, setRooms] = useState([]); 
 
-  const totalRooms = 10;
   const totalSubjects = 15;
   const totalClasses = 35;
 
@@ -47,97 +49,108 @@ const Dashboard = () => {
   const uniqueSubjects = [...new Set(classes.map(cls => cls.subject))];
   const uniqueTeachers = [...new Set(classes.map(cls => cls.teacher))];
 
+  useEffect(() => {
+    const fetchRooms = async () => {
+      const data = await getRooms();
+      setRooms(data); 
+    };
+
+    fetchRooms();
+  }, []);
+
   const cardStyle = { backgroundColor: "#00b4d8" };
 
   return (
-    <>
-      <Container sx={{ marginTop: 4 }}>
-        <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
-          <Card>
-            <CardContent sx={cardStyle}>
-              <Typography variant="h5">
-                <School /> Salas: {totalRooms}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent sx={cardStyle}>
-              <Typography variant="h5">
-                <Class /> Disciplinas: {totalSubjects}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent sx={cardStyle}>
-              <Typography variant="h5">
-                <EventAvailable /> Turmas: {totalClasses}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
+    <Container sx={{ marginTop: 4 }}>
+      <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
+        <Card>
+          <CardContent sx={cardStyle}>
+            <Typography variant="h5">
+              <School /> Salas: {rooms.length} 
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent sx={cardStyle}>
+            <Typography variant="h5">
+              <Class /> Disciplinas: {totalSubjects}
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent sx={cardStyle}>
+            <Typography variant="h5">
+              <EventAvailable /> Turmas: {totalClasses}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
 
-        <Box display="flex" gap={2} marginTop={4}>
-          <FormControl fullWidth>
-            <InputLabel>Filtro por sala</InputLabel>
-            <Select value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)}>
-              <MenuItem value="">Todos</MenuItem>
-              <MenuItem value="101">Sala 101</MenuItem>
-              <MenuItem value="102">Sala 102</MenuItem>
-              <MenuItem value="103">Sala 103</MenuItem>
-            </Select>
-          </FormControl>
+      {/* Filtros */}
+      <Box display="flex" gap={2} marginTop={4}>
+        <FormControl fullWidth>
+          <InputLabel>Filtro por sala</InputLabel>
+          <Select value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)}>
+            <MenuItem value="">Todos</MenuItem>
+            {rooms.map((room) => (
+              <MenuItem key={room.id} value={room.name}>
+                {room.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel>Filtro por disciplina</InputLabel>
-            <Select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}>
-              <MenuItem value="">Todas</MenuItem>
-              {uniqueSubjects.map((subject) => (
-                <MenuItem key={subject} value={subject}>
-                  {subject}
-                </MenuItem>
+        <FormControl fullWidth>
+          <InputLabel>Filtro por disciplina</InputLabel>
+          <Select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}>
+            <MenuItem value="">Todas</MenuItem>
+            {uniqueSubjects.map((subject) => (
+              <MenuItem key={subject} value={subject}>
+                {subject}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth>
+          <InputLabel>Filtro por professor</InputLabel>
+          <Select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value)}>
+            <MenuItem value="">Todos</MenuItem>
+            {uniqueTeachers.map((teacher) => (
+              <MenuItem key={teacher} value={teacher}>
+                {teacher}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Tabela de horários */}
+      <TableContainer component={Paper} sx={{ marginTop: 4 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Horários</TableCell>
+              {days.map((day) => (
+                <TableCell key={day}>{day}</TableCell>
               ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel>Filtro por professor</InputLabel>
-            <Select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value)}>
-              <MenuItem value="">Todos</MenuItem>
-              {uniqueTeachers.map((teacher) => (
-                <MenuItem key={teacher} value={teacher}>
-                  {teacher}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-
-        <TableContainer component={Paper} sx={{ marginTop: 4 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Horários</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {timeslots.map((time) => (
+              <TableRow key={time}>
+                <TableCell>{time}</TableCell>
                 {days.map((day) => (
-                  <TableCell key={day}>{day}</TableCell>
+                  <TableCell key={day}>
+                    {filteredClasses.find((cls) => cls.day === day && cls.time === time)?.subject || "-"}
+                  </TableCell>
                 ))}
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {timeslots.map((time) => (
-                <TableRow key={time}>
-                  <TableCell>{time}</TableCell>
-                  {days.map((day) => (
-                    <TableCell key={day}>
-                      {filteredClasses.find((cls) => cls.day === day && cls.time === time)?.subject || "-"}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Container>
-    </>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Container>
   );
 };
 

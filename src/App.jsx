@@ -1,15 +1,19 @@
-import { BrowserRouter as Router } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import PublicRoutes from './routes/PublicRoutes';
-import PrivateRoutes from './routes/PrivateRoutes';
+import { BrowserRouter as Router } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import PublicRoutes from "./routes/PublicRoutes";
+import PrivateRoutes from "./routes/PrivateRoutes";
+
+const AppContent = () => {
+  const { token } = useAuth(); 
+
+  return token ? <PrivateRoutes /> : <PublicRoutes />;
+};
 
 const App = () => {
-  const token = localStorage.getItem('@ALOCACAO:token');
-
   return (
     <Router>
       <AuthProvider>
-        {token ? <PrivateRoutes /> : <PublicRoutes />}
+        <AppContent />
       </AuthProvider>
     </Router>
   );

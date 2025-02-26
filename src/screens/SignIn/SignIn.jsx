@@ -38,6 +38,7 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
+      console.log("Enviando dados para login:", data); // 🛠️ Adiciona log para verificar
       await login(data.email, data.password);
       toast.success('Login feito com sucesso');
 

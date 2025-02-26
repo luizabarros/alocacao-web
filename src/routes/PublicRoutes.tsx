@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../screens/SignIn/SignIn';
 import Register from '../screens/SignUp/SignUp';
 import React from 'react';
@@ -8,6 +8,7 @@ const PublicRoutes = () => {
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="*" element={<Navigate to="/" />} /> {/* 🔥 Corrigido */}
     </Routes>
   );
 };
