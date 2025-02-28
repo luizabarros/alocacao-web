@@ -30,7 +30,6 @@ import Room from './Room/Room';
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
-// 🔹 Criamos uma interface para representar os itens do menu lateral
 interface MenuItemType {
   name: string;
   label: string;

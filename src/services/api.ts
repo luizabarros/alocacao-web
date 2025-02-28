@@ -7,7 +7,6 @@ const api = axios.create({
   },
 });
 
-// 🔹 Usamos `set()` para definir Authorization corretamente
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token: string | null = localStorage.getItem("@ALOCACAO:token");
 

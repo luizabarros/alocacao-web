@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
@@ -53,18 +53,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             return;
         }
 
-        // Definir o token no estado global/contexto
+        const expiresAt = Date.now() + 2 * 60 * 60 * 1000; 
+
+        localStorage.setItem("@ALOCACAO:token", authToken);
+        localStorage.setItem("@ALOCACAO:expiresAt", expiresAt.toString());
+        localStorage.setItem("@ALOCACAO:isAdmin", JSON.stringify(userIsAdmin));
+
         setToken(authToken);
         setIsAdmin(userIsAdmin);
 
-        // Armazenar no localStorage para manter a sessão
-        localStorage.setItem("@ALOCACAO:token", authToken);
-        localStorage.setItem("@ALOCACAO:isAdmin", JSON.stringify(userIsAdmin));
-
-        // Definir o token nos headers do Axios para futuras requisições
         api.defaults.headers.common["Authorization"] = `Bearer ${authToken}`;
 
-        navigate("/dashboard"); // Redireciona para o dashboard
+        navigate("/dashboard"); 
+     
     } catch (error: any) {
         console.error("❌ Erro ao fazer login:", error.response?.data || error.message);
 
@@ -83,6 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setToken(null);
     setIsAdmin(false);
     localStorage.removeItem("@ALOCACAO:token");
+    localStorage.removeItem("@ALOCACAO:expiresAt");
     localStorage.removeItem("@ALOCACAO:isAdmin");
     navigate("/");
   };
@@ -97,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
         const response = await api.post(
-            "/professor/public/register", // 🔄 URL corrigida
+            "/professor/public/register", 
             {
                 email: email.trim(),
                 password: password.trim(),
@@ -106,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             {
                 headers: { 
                     "Content-Type": "application/json",
-                }, // Removendo Authorization para evitar bloqueio
+                }, 
             }
         );
 
@@ -126,6 +128,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 };
 
+useEffect(() => {
+    const storedToken = localStorage.getItem("@ALOCACAO:token");
+    if (storedToken) {
+      setToken(storedToken);
+      api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+    }
+  }, []);
 
 return (
     <AuthContext.Provider value={{ token, isAdmin, login: handleLogin, logout: handleLogout, registerUser }}>

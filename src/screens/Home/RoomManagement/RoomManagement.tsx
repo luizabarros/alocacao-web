@@ -22,7 +22,6 @@ import {
 import { Delete, Edit } from "@mui/icons-material";
 import { toast, ToastContainer } from "react-toastify";
 
-// 🔹 Criamos uma interface para representar os dados de uma alocação de sala
 interface ClassSchedule {
   subject: string;
   classCode: string;

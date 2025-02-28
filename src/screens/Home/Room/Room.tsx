@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Container,
   TextField,
@@ -25,7 +24,7 @@ const RoomComponent: React.FC = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null); 
 
   useEffect(() => {
     getRooms()
@@ -73,31 +72,37 @@ const RoomComponent: React.FC = () => {
   };
 
   const handleDelete = (index: number) => {
-    setDeleteIndex(index);
+    const id = room[index].id;
+    console.log("🗑️ Tentando deletar sala com ID:", id); // 🔍 Debug
+    setDeleteRoomId(id);
     setOpenDeleteModal(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (deleteIndex === null) return;
-  
+    if (!deleteRoomId) {
+      console.error("⚠️ Nenhum ID de sala selecionado para exclusão.");
+      return;
+    }
+
     try {
-      const id = room[deleteIndex].id;
-      await deleteRoom(id);
+      console.log("🚀 Enviando DELETE para sala com ID:", deleteRoomId); // 🔍 Debug
+      await deleteRoom(deleteRoomId);
   
-      setRoom(room.filter((_, i) => i !== deleteIndex));
+      setRoom((prevRooms) => prevRooms.filter((room) => room.id !== deleteRoomId));
+
       toast.success("Turma deletada com sucesso!");
-  
     } catch (error) {
+      console.error("❌ Erro ao deletar sala:", error);
       toast.error("Erro ao deletar turma!");
     }
   
     setOpenDeleteModal(false);
-    setDeleteIndex(null);
+    setDeleteRoomId(null);
   };
 
   const handleDeleteCancel = () => {
     setOpenDeleteModal(false);
-    setDeleteIndex(null);
+    setDeleteRoomId(null);
   };
 
   return (
@@ -140,6 +145,17 @@ const RoomComponent: React.FC = () => {
           </Typography>
           <Button variant="contained" onClick={handleAddOrEdit} sx={{ mr: 2, mt: 2 }}>Sim</Button>
           <Button variant="outlined" onClick={() => setOpenModal(false)} sx={{ mt: 2 }}>Não</Button>
+        </Box>
+      </Modal>
+
+      <Modal open={openDeleteModal} onClose={handleDeleteCancel}>
+        <Box sx={{
+          position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+          backgroundColor: "white", padding: 4, borderRadius: 2, boxShadow: 24
+        }}>
+          <Typography variant="h6">Tem certeza que deseja excluir esta turma?</Typography>
+          <Button variant="contained" color="error" onClick={handleDeleteConfirm} sx={{ mr: 2, mt: 2 }}>Sim</Button>
+          <Button variant="outlined" onClick={handleDeleteCancel} sx={{ mt: 2 }}>Não</Button>
         </Box>
       </Modal>
 

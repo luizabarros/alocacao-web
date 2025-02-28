@@ -21,7 +21,6 @@ import {
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 
-// 🔹 Criamos uma interface para representar os dados de uma disciplina
 interface SubjectItem {
   name: string;
   cod: string;
