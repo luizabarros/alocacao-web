@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { Room, getRooms } from "../../../services/roomService";
+import { useEffect } from "react";
 import axios from "axios";
 import {
   Typography,
@@ -19,13 +21,12 @@ import {
   Paper,
 } from "@mui/material";
 import { School, Class, EventAvailable } from "@mui/icons-material";
-import { getRooms } from "../../../services/roomService";
 
 const Dashboard = () => {
   const [roomFilter, setRoomFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [teacherFilter, setTeacherFilter] = useState("");
-  const [rooms, setRooms] = useState([]); 
+  const [rooms, setRooms] = useState<Room[]>([]);
 
   const totalSubjects = 15;
   const totalClasses = 35;
@@ -51,8 +52,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchRooms = async () => {
-      const data = await getRooms();
-      setRooms(data); 
+      try {
+        const data: Room[] = await getRooms();
+        setRooms(data);
+      } catch (error) {
+        console.error("Erro ao buscar salas:", error);
+      }
     };
 
     fetchRooms();
@@ -66,7 +71,7 @@ const Dashboard = () => {
         <Card>
           <CardContent sx={cardStyle}>
             <Typography variant="h5">
-              <School /> Salas: {rooms.length} 
+              <School /> Salas: {rooms.length}
             </Typography>
           </CardContent>
         </Card>
@@ -155,3 +160,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
