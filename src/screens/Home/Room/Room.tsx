@@ -34,7 +34,7 @@ const RoomComponent: React.FC = () => {
 
   const handleAddOrEdit = async () => {
     if (!className) {
-      toast.error("Por favor, preencha o nome da turma!");
+      toast.error("Por favor, preencha o nome da sala!");
       return;
     }
   
@@ -47,13 +47,13 @@ const RoomComponent: React.FC = () => {
           const updatedRooms = [...room];
           updatedRooms[editingIndex] = updatedRoom;
           setRoom(updatedRooms);
-          toast.success("Turma editada com sucesso!");
+          toast.success("Sala editada com sucesso!");
         }
       } else {
         const newRoom = await createRoom(className);
         if (newRoom) {
           setRoom([...room, newRoom]);
-          toast.success("Turma adicionada com sucesso!");
+          toast.success("Sala adicionada com sucesso!");
         }
       }
   
@@ -62,7 +62,7 @@ const RoomComponent: React.FC = () => {
       setEditingIndex(null);
   
     } catch (error) {
-      toast.error("Erro ao salvar turma!");
+      toast.error("Erro ao salvar sala!");
     }
   };
   
@@ -90,10 +90,10 @@ const RoomComponent: React.FC = () => {
   
       setRoom((prevRooms) => prevRooms.filter((room) => room.id !== deleteRoomId));
 
-      toast.success("Turma deletada com sucesso!");
+      toast.success("Sala deletada com sucesso!");
     } catch (error) {
       console.error("❌ Erro ao deletar sala:", error);
-      toast.error("Erro ao deletar turma!");
+      toast.error("Erro ao deletar sala!");
     }
   
     setOpenDeleteModal(false);
@@ -109,7 +109,7 @@ const RoomComponent: React.FC = () => {
     <Container>
       <ToastContainer />  
       <Typography variant="h4" gutterBottom>
-        Gerenciar Turmas
+        Gerenciar Salas
       </Typography>
 
       <Stack 
@@ -119,7 +119,7 @@ const RoomComponent: React.FC = () => {
         sx={{ mb: 3 }}
       >
         <TextField 
-          label="Nome da Turma" 
+          label="Nome da Sala" 
           value={className}  
           onChange={(e) => setClassName(e.target.value)} 
           fullWidth
@@ -141,7 +141,7 @@ const RoomComponent: React.FC = () => {
           backgroundColor: "white", padding: 4, borderRadius: 2, boxShadow: 24
         }}>
           <Typography variant="h6">
-            Deseja {editingIndex !== null ? "editar" : "cadastrar"} a turma?
+            Deseja {editingIndex !== null ? "editar" : "cadastrar"} a sala?
           </Typography>
           <Button variant="contained" onClick={handleAddOrEdit} sx={{ mr: 2, mt: 2 }}>Sim</Button>
           <Button variant="outlined" onClick={() => setOpenModal(false)} sx={{ mt: 2 }}>Não</Button>
@@ -153,7 +153,7 @@ const RoomComponent: React.FC = () => {
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
           backgroundColor: "white", padding: 4, borderRadius: 2, boxShadow: 24
         }}>
-          <Typography variant="h6">Tem certeza que deseja excluir esta turma?</Typography>
+          <Typography variant="h6">Tem certeza que deseja excluir esta sala?</Typography>
           <Button variant="contained" color="error" onClick={handleDeleteConfirm} sx={{ mr: 2, mt: 2 }}>Sim</Button>
           <Button variant="outlined" onClick={handleDeleteCancel} sx={{ mt: 2 }}>Não</Button>
         </Box>
@@ -163,7 +163,7 @@ const RoomComponent: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Nome da Turma</TableCell>
+              <TableCell>Nome da Sala</TableCell>
               <TableCell>Ações</TableCell>
             </TableRow>
           </TableHead>
@@ -179,6 +179,7 @@ const RoomComponent: React.FC = () => {
             ))}
           </TableBody>
         </Table>
+        
       </TableContainer>
     </Container>
   );

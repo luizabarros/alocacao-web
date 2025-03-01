@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { useState, useEffect } from "react";
 import { Room, getRooms } from "../../../services/roomService";
-import { useEffect } from "react";
-import axios from "axios";
+import { listSubjects } from "../../../services/subjectService"; 
 import {
   Typography,
   Container,
@@ -27,18 +26,18 @@ const Dashboard = () => {
   const [subjectFilter, setSubjectFilter] = useState("");
   const [teacherFilter, setTeacherFilter] = useState("");
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [subjects, setSubjects] = useState<string[]>([]); 
 
-  const totalSubjects = 15;
   const totalClasses = 35;
 
   const timeslots = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
-  const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+  const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
 
   const classes = [
     { subject: "Matemática (T1)", room: "101", teacher: "Dr. Smith", day: "Segunda", time: "08:00" },
-    { subject: "História (T2)", room: "102", teacher: "Prof. Johnson", day: "Terça", time: "10:00" },
+    { subject: "História (T2)", room: "102", teacher: "Prof. Johnson", day: "Terça", time: "10:00" },
     { subject: "Física (T3)", room: "103", teacher: "Dr. Adams", day: "Quarta", time: "14:00" },
-    { subject: "Quimica (T4)", room: "104", teacher: "Prof. Brown", day: "Quinta", time: "16:00" },
+    { subject: "Química (T4)", room: "104", teacher: "Prof. Brown", day: "Quinta", time: "16:00" },
   ];
 
   const filteredClasses = classes.filter(cls =>
@@ -46,9 +45,6 @@ const Dashboard = () => {
     (subjectFilter === "" || cls.subject === subjectFilter) &&
     (teacherFilter === "" || cls.teacher === teacherFilter)
   );
-
-  const uniqueSubjects = [...new Set(classes.map(cls => cls.subject))];
-  const uniqueTeachers = [...new Set(classes.map(cls => cls.teacher))];
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -60,7 +56,18 @@ const Dashboard = () => {
       }
     };
 
+    const fetchSubjects = async () => {
+      try {
+        const data = await listSubjects();  
+        const formattedSubjects = data.map((subject: any) => subject.name);  
+        setSubjects(formattedSubjects);
+      } catch (error) {
+        console.error("Erro ao buscar disciplinas:", error);
+      }
+    };
+
     fetchRooms();
+    fetchSubjects();
   }, []);
 
   const cardStyle = { backgroundColor: "#00b4d8" };
@@ -78,20 +85,19 @@ const Dashboard = () => {
         <Card>
           <CardContent sx={cardStyle}>
             <Typography variant="h5">
-              <Class /> Disciplinas: {totalSubjects}
+              <Class /> Disciplinas: {subjects.length} 
             </Typography>
           </CardContent>
         </Card>
         <Card>
           <CardContent sx={cardStyle}>
             <Typography variant="h5">
-              <EventAvailable /> Turmas: {totalClasses}
+              <EventAvailable /> Aulas: {totalClasses}
             </Typography>
           </CardContent>
         </Card>
       </Box>
 
-      {/* Filtros */}
       <Box display="flex" gap={2} marginTop={4}>
         <FormControl fullWidth>
           <InputLabel>Filtro por sala</InputLabel>
@@ -109,7 +115,7 @@ const Dashboard = () => {
           <InputLabel>Filtro por disciplina</InputLabel>
           <Select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}>
             <MenuItem value="">Todas</MenuItem>
-            {uniqueSubjects.map((subject) => (
+            {subjects.map((subject) => ( 
               <MenuItem key={subject} value={subject}>
                 {subject}
               </MenuItem>
@@ -121,7 +127,7 @@ const Dashboard = () => {
           <InputLabel>Filtro por professor</InputLabel>
           <Select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value)}>
             <MenuItem value="">Todos</MenuItem>
-            {uniqueTeachers.map((teacher) => (
+            {["Dr. Smith", "Prof. Johnson", "Dr. Adams", "Prof. Brown"].map((teacher) => (
               <MenuItem key={teacher} value={teacher}>
                 {teacher}
               </MenuItem>
@@ -130,7 +136,6 @@ const Dashboard = () => {
         </FormControl>
       </Box>
 
-      {/* Tabela de horários */}
       <TableContainer component={Paper} sx={{ marginTop: 4 }}>
         <Table>
           <TableHead>
@@ -160,4 +165,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

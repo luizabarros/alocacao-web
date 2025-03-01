@@ -59,7 +59,8 @@ const HomePage: React.FC = () => {
 
   const handleItemClick = (item: MenuItemType): void => {
     setSelectedItem(item.name);
-
+    setOpen(false); 
+  
     if (item.name === "sair") {
       setOpenDialog(true);
     }
