@@ -1,13 +1,18 @@
-import axios from 'axios';
+import axios from "axios";
+import { listProfessors, Professor } from "./professorService"; 
 
-const API_URL = 'http://localhost:8080/disciplinas'; 
+const API_URL = "http://localhost:8080/disciplinas"; 
+const PROFESSOR_API_URL = "http://localhost:8080/professores/private/all"; 
+
 
 export interface Subject {
     id: string;
     name: string;
     codClass: string;
+    professorId?: string | null; 
+    professorName?: string; // 
   }
-  
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem("@ALOCACAO:token");
     const expiresAt = localStorage.getItem("@ALOCACAO:expiresAt");
@@ -29,7 +34,7 @@ export interface Subject {
     };
   };
   
-  export const listSubjects = async (): Promise<Subject[]> => {
+  export const getSubjects = async (): Promise<Subject[]> => {
     try {
       const response = await axios.get<Subject[]>(API_URL, getAuthHeaders());
       return response.data;
@@ -38,6 +43,24 @@ export interface Subject {
       return [];
     }
   };
+
+  export const listSubjects = async (): Promise<Subject[]> => {
+    try {
+      const response = await axios.get<Subject[]>(API_URL, getAuthHeaders());
+      const subjects = response.data;
+  
+      const professors = await listProfessors();  
+  
+      return subjects.map(subject => ({
+        ...subject,
+        professorName: professors.find(prof => prof.id === subject.professorId)?.name || "Não atribuído" 
+      }));
+    } catch (error) {
+      console.error("Erro ao buscar disciplinas:", error);
+      return [];
+    }
+  };
+
   
   export const createSubject = async (subjectData: { name: string; codClass: string }): Promise<Subject | null> => {
     try {
@@ -70,7 +93,7 @@ export interface Subject {
       console.error("❌ Erro ao deletar disciplina:", error);
     }
   };
-  
+
   export const getSubjectById = async (subjectId: string): Promise<Subject | null> => {
     try {
       const response = await axios.get<Subject>(`${API_URL}/${subjectId}`, getAuthHeaders());
@@ -83,11 +106,16 @@ export interface Subject {
   
   export const updateSubjectProfessor = async (subjectId: string, professorId: string): Promise<Subject | null> => {
     try {
-      const response = await axios.put<Subject>(`${API_URL}/${subjectId}/professor/${professorId}`, {}, getAuthHeaders());
+      const response = await axios.put<Subject>(
+        `${API_URL}/${subjectId}/professor/${professorId}`,  
+        {},  
+        getAuthHeaders()
+      );
       return response.data;
     } catch (error) {
       console.error("Erro ao associar professor à disciplina:", error);
       return null;
     }
   };
+  
 

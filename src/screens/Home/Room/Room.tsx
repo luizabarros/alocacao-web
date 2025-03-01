@@ -32,7 +32,7 @@ const RoomComponent: React.FC = () => {
 
   useEffect(() => {
     if (editingRoom) {
-      setRoomName(editingRoom.name); // ✅ Agora o nome da sala aparece corretamente no modal de edição
+      setRoomName(editingRoom.name); 
     }
   }, [editingRoom]);
 
@@ -55,7 +55,6 @@ const RoomComponent: React.FC = () => {
       setEditingRoom(room);
       setRoomName(room.name);
     } else {
-      // ✅ Agora mantém o valor digitado ao abrir a tela de criação
       setEditingRoom(null);
     }
     setOpenModal(true);
@@ -130,13 +129,12 @@ const RoomComponent: React.FC = () => {
           onClick={() => handleOpenModal()}
           variant="contained"
           fullWidth
-          disabled={!roomName.trim()} // ✅ Impede que o botão seja clicado com campo vazio
+          disabled={!roomName.trim()} 
         >
           {editingRoom ? "Editar" : "Adicionar"}
         </Button>
       </Stack>
 
-      {/* ✅ MODAL PARA CRIAR/EDITAR SALA */}
       <Modal open={openModal} onClose={handleCloseModal}>
         <Box sx={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
@@ -148,7 +146,7 @@ const RoomComponent: React.FC = () => {
 
           <TextField
             label="Nome da Sala"
-            value={roomName} // ✅ Agora o nome digitado aparece corretamente no campo do modal
+            value={roomName} 
             onChange={(e) => setRoomName(e.target.value)}
             fullWidth
             sx={{ my: 2 }}
@@ -164,7 +162,6 @@ const RoomComponent: React.FC = () => {
         </Box>
       </Modal>
 
-      {/* ✅ MODAL DE CONFIRMAÇÃO PARA DELETAR */}
       <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <Box sx={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
@@ -176,7 +173,6 @@ const RoomComponent: React.FC = () => {
         </Box>
       </Modal>
 
-      {/* ✅ TABELA COM AS SALAS */}
       <TableContainer component={Paper} sx={{ mt: 4 }}>
         <Table>
           <TableHead>
@@ -196,7 +192,7 @@ const RoomComponent: React.FC = () => {
                   <Button variant="outlined" color="error" onClick={() => handleDelete(room)}>
                     Deletar
                   </Button>
-                </TableCell> {/* ✅ Fechamento correto */}
+                </TableCell> 
               </TableRow>
             ))}
           </TableBody>

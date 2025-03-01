@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Room, getRooms } from "../../../services/roomService";
-import { listSubjects } from "../../../services/subjectService"; 
+import { listSubjects } from "../../../services/subjectService";
+import { getProfessors } from "../../../services/professorService";
+import { getDayOfWeek, getLectures, Lecture } from "../../../services/lectureService";
+
 import {
   Typography,
   Container,
@@ -26,25 +29,58 @@ const Dashboard = () => {
   const [subjectFilter, setSubjectFilter] = useState("");
   const [teacherFilter, setTeacherFilter] = useState("");
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [subjects, setSubjects] = useState<string[]>([]); 
+  const [subjects, setSubjects] = useState<{ id: string; name: string; professorName?: string }[]>([]);
+  const [professors, setProfessors] = useState<string[]>([]);
+  const [lectures, setLectures] = useState<Lecture[]>([]);
+  const [daysOfWeek, setDaysOfWeek] = useState<string[]>([]);
 
-  const totalClasses = 35;
+  const timeslots = ["08:00", "08:50", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 
-  const timeslots = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
-  const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+  // 🔹 Transformamos `lectures` para incluir o nome da disciplina e do professor
+  const filteredClasses = lectures
+    .map((lecture) => {
+      const subject = subjects.find((s) => s.id === lecture.subjectId);
+      return {
+        ...lecture,
+        subjectName: subject?.name || "Sem nome",
+        teacher: subject?.professorName || "Não atribuído", 
+      };
+    })
+    .filter((cls) =>
+      (roomFilter === "" || cls.roomId === roomFilter) &&
+      (subjectFilter === "" || cls.subjectId === subjectFilter) &&
+      (teacherFilter === "" || cls.teacher === teacherFilter)
+    );
 
-  const classes = [
-    { subject: "Matemática (T1)", room: "101", teacher: "Dr. Smith", day: "Segunda", time: "08:00" },
-    { subject: "História (T2)", room: "102", teacher: "Prof. Johnson", day: "Terça", time: "10:00" },
-    { subject: "Física (T3)", room: "103", teacher: "Dr. Adams", day: "Quarta", time: "14:00" },
-    { subject: "Química (T4)", room: "104", teacher: "Prof. Brown", day: "Quinta", time: "16:00" },
-  ];
+  useEffect(() => {
+    const fetchDaysOfWeek = async () => {
+      try {
+        const data = await getDayOfWeek();
+        if (Array.isArray(data)) {
+          setDaysOfWeek(data.map(String)); // Garante que são strings
+        } else {
+          console.error("Erro: os dados retornados não são um array de strings.");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar os dias da semana:", error);
+      }
+    };
 
-  const filteredClasses = classes.filter(cls =>
-    (roomFilter === "" || cls.room === roomFilter) &&
-    (subjectFilter === "" || cls.subject === subjectFilter) &&
-    (teacherFilter === "" || cls.teacher === teacherFilter)
-  );
+    fetchDaysOfWeek();
+  }, []);
+
+  useEffect(() => {
+    const fetchLectures = async () => {
+      try {
+        const data = await getLectures();
+        setLectures(data);
+      } catch (error) {
+        console.error("Erro ao buscar aulas:", error);
+      }
+    };
+
+    fetchLectures();
+  }, []);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -58,9 +94,8 @@ const Dashboard = () => {
 
     const fetchSubjects = async () => {
       try {
-        const data = await listSubjects();  
-        const formattedSubjects = data.map((subject: any) => subject.name);  
-        setSubjects(formattedSubjects);
+        const data = await listSubjects();
+        setSubjects(data); 
       } catch (error) {
         console.error("Erro ao buscar disciplinas:", error);
       }
@@ -68,6 +103,20 @@ const Dashboard = () => {
 
     fetchRooms();
     fetchSubjects();
+  }, []);
+
+  useEffect(() => {
+    const fetchProfessors = async () => {
+      try {
+        const data = await getProfessors();
+        const formattedProfessors = data.map((professor) => professor.name);
+        setProfessors(formattedProfessors);
+      } catch (error) {
+        console.error("Erro ao buscar professores:", error);
+      }
+    };
+
+    fetchProfessors();
   }, []);
 
   const cardStyle = { backgroundColor: "#00b4d8" };
@@ -85,14 +134,14 @@ const Dashboard = () => {
         <Card>
           <CardContent sx={cardStyle}>
             <Typography variant="h5">
-              <Class /> Disciplinas: {subjects.length} 
+              <Class /> Disciplinas: {subjects.length}
             </Typography>
           </CardContent>
         </Card>
         <Card>
           <CardContent sx={cardStyle}>
             <Typography variant="h5">
-              <EventAvailable /> Aulas: {totalClasses}
+              <EventAvailable /> Aulas: {lectures.length}
             </Typography>
           </CardContent>
         </Card>
@@ -104,7 +153,7 @@ const Dashboard = () => {
           <Select value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)}>
             <MenuItem value="">Todos</MenuItem>
             {rooms.map((room) => (
-              <MenuItem key={room.id} value={room.name}>
+              <MenuItem key={room.id} value={room.id}>
                 {room.name}
               </MenuItem>
             ))}
@@ -115,9 +164,9 @@ const Dashboard = () => {
           <InputLabel>Filtro por disciplina</InputLabel>
           <Select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}>
             <MenuItem value="">Todas</MenuItem>
-            {subjects.map((subject) => ( 
-              <MenuItem key={subject} value={subject}>
-                {subject}
+            {subjects.map((subject) => (
+              <MenuItem key={subject.id} value={subject.id}>
+                {subject.name}
               </MenuItem>
             ))}
           </Select>
@@ -127,7 +176,7 @@ const Dashboard = () => {
           <InputLabel>Filtro por professor</InputLabel>
           <Select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value)}>
             <MenuItem value="">Todos</MenuItem>
-            {["Dr. Smith", "Prof. Johnson", "Dr. Adams", "Prof. Brown"].map((teacher) => (
+            {professors.map((teacher) => (
               <MenuItem key={teacher} value={teacher}>
                 {teacher}
               </MenuItem>
@@ -141,7 +190,7 @@ const Dashboard = () => {
           <TableHead>
             <TableRow>
               <TableCell>Horários</TableCell>
-              {days.map((day) => (
+              {daysOfWeek.map((day) => (
                 <TableCell key={day}>{day}</TableCell>
               ))}
             </TableRow>
@@ -150,9 +199,13 @@ const Dashboard = () => {
             {timeslots.map((time) => (
               <TableRow key={time}>
                 <TableCell>{time}</TableCell>
-                {days.map((day) => (
+                {daysOfWeek.map((day) => (
                   <TableCell key={day}>
-                    {filteredClasses.find((cls) => cls.day === day && cls.time === time)?.subject || "-"}
+                    {filteredClasses.find((cls) => cls.dayOfWeek === day && cls.hourInit === time)?.subjectName || "-"}
+                    <br />
+                    <Typography variant="caption">
+                      {filteredClasses.find((cls) => cls.dayOfWeek === day && cls.hourInit === time)?.teacher || "-"}
+                    </Typography>
                   </TableCell>
                 ))}
               </TableRow>
