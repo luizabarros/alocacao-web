@@ -76,21 +76,17 @@ const Subject: React.FC = () => {
       }
 
       setOpenModal(false);
-      setEditingSubject(null);
-      setName("");
-      setCodClass("");
+      resetFields();
       fetchSubjects();
     } catch (error) {
       toast.error("Erro ao salvar disciplina.");
     }
   };
 
-
-
   const handleEdit = (subject: SubjectItem): void => {
+    setEditingSubject(subject);
     setName(subject.name);
     setCodClass(subject.codClass);
-    setEditingSubject(subject);
     setOpenModal(true);
   };
 
@@ -118,12 +114,19 @@ const Subject: React.FC = () => {
         toast.error("Erro ao deletar disciplina.");
       }
       setOpenDeleteModal(false);
-      setDeleteSubjectId(null);
+      resetFields();
     }
   };
 
   const handleDeleteCancel = (): void => {
     setOpenDeleteModal(false);
+    resetFields();
+  };
+
+  const resetFields = () => {
+    setName("");
+    setCodClass("");
+    setEditingSubject(null);
     setDeleteSubjectId(null);
   };
 
@@ -188,7 +191,7 @@ const Subject: React.FC = () => {
           <Button
             variant="outlined"
             onClick={() => {
-              setEditingSubject(null);
+              resetFields();
               setOpenModal(false);
             }}
             sx={{ mt: 2 }}
@@ -226,6 +229,9 @@ const Subject: React.FC = () => {
                 <TableCell>{subject.name}</TableCell>
                 <TableCell>{subject.codClass}</TableCell>
                 <TableCell>
+                  <Button variant="outlined" onClick={() => handleEdit(subject)} sx={{ mr: 2 }}>
+                    Editar
+                  </Button>
                   <Button variant="outlined" color="error" onClick={() => {
                     setDeleteSubjectId(subject.id);
                     setOpenDeleteModal(true);
