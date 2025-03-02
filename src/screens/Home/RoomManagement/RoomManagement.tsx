@@ -157,9 +157,12 @@ const RoomManagement: React.FC = () => {
       resetForm();
     } catch (error: any) {
       console.error("❌ Erro ao atualizar aula:", error.message);
+      const errorMessage = error.response?.data?.message || "Erro ao atualizar aula.";
       toast.error(`❌ ${error.message}`);
+      resetForm();
     }
   };
+  
 
   const handleDeleteClass = async () => {
     if (!deleteId) {
