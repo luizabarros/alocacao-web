@@ -1,14 +1,14 @@
-import axios from "axios"; 
+import axios from "axios";
 
 const API_URL = "http://localhost:8080/lectures";
 
 export interface Lecture {
   id?: string;
-  subjectId: string;   
-  roomId: string;      
-  dayOfWeek: string;   
-  hourInit: string;    
-  duration: string;    
+  subjectId: string;
+  roomId: string;
+  dayOfWeek: string;
+  hourInit: string;
+  duration: string;
 }
 
 const getAuthHeaders = () => {
@@ -43,40 +43,38 @@ export const getLectures = async (): Promise<Lecture[]> => {
 };
 
 export const createLecture = async (lecture: Lecture): Promise<Lecture | null> => {
-    if (!lecture.subjectId || !lecture.roomId) {
-      console.error("⚠️ subjectId e roomId são obrigatórios para criar uma aula!");
-      return null;
-    }
-  
-    if (!lecture.hourInit || !lecture.duration || !lecture.dayOfWeek) {
-      console.error("⚠️ Campos obrigatórios (hourInit, duration, dayOfWeek) estão ausentes!");
-      return null;
-    }
-  
-    const formattedLecture = {
-      subjectId: lecture.subjectId,
-      roomId: lecture.roomId,
-      dayOfWeek: lecture.dayOfWeek.toUpperCase(),
-      hourInit: lecture.hourInit.split(":").length === 2 ? `${lecture.hourInit}:00` : lecture.hourInit,
-      duration: lecture.duration.startsWith("PT") ? lecture.duration : `PT${lecture.duration}M`
-    };
-  
-    console.log("📤 Enviando para API:", JSON.stringify(formattedLecture, null, 2));
-  
-    try {
-      const response = await axios.post<Lecture>(API_URL, formattedLecture, getAuthHeaders());
-      console.log("✅ Aula criada com sucesso!", response.data);
-      return response.data;
-    } catch (error: any) {
-      console.error("❌ Erro ao criar aula:", error.response?.data || error.message);
-  
-      const errorMessage = error.response?.data?.message || error.response?.data || "Erro desconhecido ao criar aula.";
-  
-      throw new Error(errorMessage); 
-    }
-  };
-  
+  if (!lecture.subjectId || !lecture.roomId) {
+    console.error("⚠️ subjectId e roomId são obrigatórios para criar uma aula!");
+    return null;
+  }
 
+  if (!lecture.hourInit || !lecture.duration || !lecture.dayOfWeek) {
+    console.error("⚠️ Campos obrigatórios (hourInit, duration, dayOfWeek) estão ausentes!");
+    return null;
+  }
+
+  const formattedLecture = {
+    subjectId: lecture.subjectId,
+    roomId: lecture.roomId,
+    dayOfWeek: lecture.dayOfWeek.toUpperCase(),
+    hourInit: lecture.hourInit.split(":").length === 2 ? `${lecture.hourInit}:00` : lecture.hourInit,
+    duration: lecture.duration.startsWith("PT") ? lecture.duration : `PT${lecture.duration}M`
+  };
+
+  console.log("📤 Enviando para API:", JSON.stringify(formattedLecture, null, 2));
+
+  try {
+    const response = await axios.post<Lecture>(API_URL, formattedLecture, getAuthHeaders());
+    console.log("✅ Aula criada com sucesso!", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Erro ao criar aula:", error.response?.data || error.message);
+
+    const errorMessage = error.response?.data?.message || error.response?.data || "Erro desconhecido ao criar aula.";
+
+    throw new Error(errorMessage);
+  }
+};
 
 export const updateLecture = async (lectureId: string, lecture: Lecture): Promise<Lecture | null> => {
   if (!lecture.subjectId || !lecture.roomId) {
@@ -93,30 +91,34 @@ export const updateLecture = async (lectureId: string, lecture: Lecture): Promis
     subjectId: lecture.subjectId,
     roomId: lecture.roomId,
     dayOfWeek: lecture.dayOfWeek.toUpperCase(), 
-    hourInit: lecture.hourInit.length === 5 ? `${lecture.hourInit}:00` : lecture.hourInit, 
-    duration: `PT${lecture.duration}M` 
+    hourInit: lecture.hourInit.includes(":") ? lecture.hourInit : `${lecture.hourInit}:00`, 
+    duration: lecture.duration.startsWith("PT") ? lecture.duration : `PT${lecture.duration}M` 
   };
-  
+
+  console.log("📤 Enviando atualização para API:", JSON.stringify(formattedLecture, null, 2));
 
   try {
     const response = await axios.put<Lecture>(`${API_URL}/${lectureId}`, formattedLecture, getAuthHeaders());
     console.log("✅ Aula atualizada com sucesso!", response.data);
     return response.data;
-  } catch (error) {
-    console.error("❌ Erro ao atualizar aula:", error);
+  } catch (error: any) {
+    console.error("❌ Erro ao atualizar aula:", error.response?.data || error.message);
     return null;
   }
 };
 
 export const deleteLecture = async (lectureId: string): Promise<void> => {
   try {
-    console.log("🗑️ Deletando aula com ID:", lectureId);
+    console.log("📡 Enviando requisição DELETE para excluir aula com ID:", lectureId);
     await axios.delete(`${API_URL}/${lectureId}`, getAuthHeaders());
-    console.log("✅ Aula deletada com sucesso!");
-  } catch (error) {
-    console.error("❌ Erro ao deletar aula:", error);
+    console.log("✅ Aula deletada com sucesso! (Confirmação da API)");
+  } catch (error: any) {
+    console.error("❌ Erro ao deletar aula:", error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || "Erro ao excluir aula.");
   }
 };
+
+
 
 export const getDayOfWeek = async (): Promise<string[]> => {
   try {

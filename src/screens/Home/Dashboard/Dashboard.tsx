@@ -29,35 +29,40 @@ const Dashboard = () => {
   const [subjectFilter, setSubjectFilter] = useState("");
   const [teacherFilter, setTeacherFilter] = useState("");
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [subjects, setSubjects] = useState<{ id: string; name: string; professorName?: string }[]>([]);
+  const [subjects, setSubjects] = useState<{ id: string; name: string; professorName?: string; codClass: string }[]>([]);
   const [professors, setProfessors] = useState<string[]>([]);
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [daysOfWeek, setDaysOfWeek] = useState<string[]>([]);
 
-  const timeslots = ["08:00", "08:50", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
+  const timeslots = ["07:00", "07:50", "08:40", "09:30", "10:20", "11:10"];
 
-  // 🔹 Transformamos `lectures` para incluir o nome da disciplina e do professor
+
   const filteredClasses = lectures
     .map((lecture) => {
       const subject = subjects.find((s) => s.id === lecture.subjectId);
       return {
         ...lecture,
         subjectName: subject?.name || "Sem nome",
-        teacher: subject?.professorName || "Não atribuído", 
+        teacher: subject?.professorName || "Não atribuído",
+        codClass: subject?.codClass || "Sem turma", 
+        dayOfWeek: lecture.dayOfWeek.toUpperCase(),
+        hourInit: lecture.hourInit.substring(0, 5),
       };
     })
-    .filter((cls) =>
-      (roomFilter === "" || cls.roomId === roomFilter) &&
-      (subjectFilter === "" || cls.subjectId === subjectFilter) &&
-      (teacherFilter === "" || cls.teacher === teacherFilter)
-    );
+    .filter((cls) => {
+      return (
+        (roomFilter === "" || cls.roomId === roomFilter) &&
+        (subjectFilter === "" || cls.subjectId === subjectFilter) &&
+        (teacherFilter === "" || cls.teacher.toLowerCase() === teacherFilter.toLowerCase()) 
+      );
+    });
 
   useEffect(() => {
     const fetchDaysOfWeek = async () => {
       try {
         const data = await getDayOfWeek();
         if (Array.isArray(data)) {
-          setDaysOfWeek(data.map(String)); // Garante que são strings
+          setDaysOfWeek(data.map((day) => day.toUpperCase()));
         } else {
           console.error("Erro: os dados retornados não são um array de strings.");
         }
@@ -92,16 +97,22 @@ const Dashboard = () => {
       }
     };
 
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
     const fetchSubjects = async () => {
       try {
         const data = await listSubjects();
-        setSubjects(data); 
+        setSubjects(data.map((subject) => ({
+          ...subject,
+          professorName: subject.professorName || "Não atribuído", 
+        })));
       } catch (error) {
         console.error("Erro ao buscar disciplinas:", error);
       }
     };
 
-    fetchRooms();
     fetchSubjects();
   }, []);
 
@@ -109,15 +120,15 @@ const Dashboard = () => {
     const fetchProfessors = async () => {
       try {
         const data = await getProfessors();
-        const formattedProfessors = data.map((professor) => professor.name);
+        const formattedProfessors = data.map((professor) => professor.name.trim().toLowerCase());
         setProfessors(formattedProfessors);
       } catch (error) {
         console.error("Erro ao buscar professores:", error);
       }
     };
-
     fetchProfessors();
   }, []);
+
 
   const cardStyle = { backgroundColor: "#00b4d8" };
 
@@ -199,18 +210,28 @@ const Dashboard = () => {
             {timeslots.map((time) => (
               <TableRow key={time}>
                 <TableCell>{time}</TableCell>
-                {daysOfWeek.map((day) => (
-                  <TableCell key={day}>
-                    {filteredClasses.find((cls) => cls.dayOfWeek === day && cls.hourInit === time)?.subjectName || "-"}
-                    <br />
-                    <Typography variant="caption">
-                      {filteredClasses.find((cls) => cls.dayOfWeek === day && cls.hourInit === time)?.teacher || "-"}
-                    </Typography>
-                  </TableCell>
-                ))}
+                {daysOfWeek.map((day) => {
+                  const classInfo = filteredClasses.find(
+                    (cls) => cls.dayOfWeek === day.toUpperCase() && cls.hourInit === time
+                  );
+
+                  return (
+                    <TableCell key={day}>
+                      {classInfo ? (
+                        <>
+                          <Typography variant="body1">{classInfo.subjectName}</Typography>
+                          <Typography variant="caption">{classInfo.codClass}</Typography> 
+                        </>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>
+
         </Table>
       </TableContainer>
     </Container>

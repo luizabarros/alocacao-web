@@ -22,12 +22,12 @@ import {
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import { toast, ToastContainer } from "react-toastify";
-import { createLecture, deleteLecture, getLectures, getDayOfWeek, Lecture } from "../../../services/lectureService";
+import { createLecture, deleteLecture, getLectures, getDayOfWeek, updateLecture, Lecture } from "../../../services/lectureService";
 import { getRooms } from "../../../services/roomService";
 import { listSubjects } from "../../../services/subjectService";
 import { useAuth } from "../../../contexts/AuthContext";
 
-const schedules = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00"];
+const schedules = ["07:00", "07:50", "08:40", "09:30", "10:20", "11:10"];
 
 const RoomManagement: React.FC = () => {
   const { token } = useAuth();
@@ -55,9 +55,11 @@ const RoomManagement: React.FC = () => {
 
   useEffect(() => {
     console.log("🔍 Subjects carregados:", subjects);
-    subjects.forEach(subject => console.log(`Disciplina: ${subject.name}, Professor: ${subject.professorName ?? "Não encontrado"}`));
+    subjects.forEach(subject => 
+      console.log(`Disciplina: ${subject.name}, Professor: ${subject.professorName ?? "Não encontrado"}`)
+    );
   }, [subjects]);
- 
+
 
   const fetchLectures = async () => {
     try {
@@ -104,7 +106,7 @@ const RoomManagement: React.FC = () => {
       toast.error("⚠️ Todos os campos são obrigatórios!");
       return;
     }
-  
+
     const newLecture: Lecture = {
       subjectId,
       roomId,
@@ -112,19 +114,21 @@ const RoomManagement: React.FC = () => {
       hourInit,
       duration,
     };
-  
+
     try {
       console.log("📤 Tentando criar aula:", newLecture);
       await createLecture(newLecture);
       toast.success("✅ Aula alocada com sucesso!");
-      fetchLectures(); 
+      fetchLectures();
+      resetForm();
     } catch (error: any) {
       console.error("❌ Erro ao criar aula:", error.message);
-      toast.error(`❌ ${error.message}`); 
+      toast.error(`❌ ${error.message}`);
     }
   };
-  
-const handleEditClass = (lecture: Lecture) => {
+
+
+  const handleEditClass = (lecture: Lecture) => {
     setSubjectId(lecture.subjectId);
     setRoomId(lecture.roomId);
     setDayOfWeek(lecture.dayOfWeek);
@@ -133,17 +137,59 @@ const handleEditClass = (lecture: Lecture) => {
     setEditId(lecture.id || null);
   };
 
-  const handleDeleteClass = async () => {
-    if (deleteId) {
-      try {
-        await deleteLecture(deleteId);
-        toast.success("Aula excluída com sucesso!");
-        fetchLectures();
-      } catch (error) {
-        toast.error("Erro ao excluir a alocação.");
-      }
-      setOpenDialog(false);
+  const handleUpdateClass = async () => { 
+    if (!editId) return;
+  
+    const updatedLecture: Lecture = {
+      subjectId,
+      roomId,
+      dayOfWeek,  
+      hourInit,
+      duration,
+    };
+  
+    try {
+      console.log("🔄 Deletando a aula antiga antes de atualizar...");
+      await deleteLecture(editId);  
+  
+      console.log("✏️ Criando nova aula...");
+      await createLecture(updatedLecture);
+  
+      toast.success("✅ Aula atualizada com sucesso!");
+      fetchLectures(); 
+      resetForm();
+    } catch (error: any) {
+      console.error("❌ Erro ao atualizar aula:", error.message);
+      toast.error(`❌ ${error.message}`);
     }
+  };
+ 
+  const handleDeleteClass = async () => {
+    if (!deleteId) {
+      console.error("❌ Nenhum ID para deletar!");
+      return;
+    }
+
+    console.log("📢 Chamando deleteLecture() para ID:", deleteId);
+
+    try {
+      await deleteLecture(deleteId);
+      console.log("✅ Aula excluída com sucesso!");
+      toast.success("✅ Aula excluída com sucesso!");
+      fetchLectures(); // 
+
+      setOpenDialog(false); 
+      setDeleteId(null); 
+    } catch (error: any) {
+      console.error("❌ Erro ao excluir aula:", error.message);
+      toast.error(`❌ ${error.message}`);
+    }
+  };
+
+  const handleDeleteConfirmation = (lectureId: string) => {
+    console.log("🗑️ Preparando exclusão para ID:", lectureId);
+    setDeleteId(lectureId);
+    setOpenDialog(true);
   };
 
   const getSubjectName = (subjectId: string) => {
@@ -161,18 +207,18 @@ const handleEditClass = (lecture: Lecture) => {
       console.log("⏳ Subjects ainda não carregados.");
       return "Carregando...";
     }
-    
+
     const subject = subjects.find((s) => s.id === subjectId);
-    
+
     if (!subject) {
       console.log(`❌ Subject não encontrado para ID: ${subjectId}`);
       return "Não atribuído";
     }
-  
+
     console.log(`✅ Professor encontrado para ${subject.name}: ${subject.professorName}`);
-    return subject.professorName ?? "Não atribuído";  
+    return subject.professorName ?? "Não atribuído";
   };
-  
+
 
   const resetForm = () => {
     setSubjectId("");
@@ -181,7 +227,6 @@ const handleEditClass = (lecture: Lecture) => {
     setDuration("PT50M");
     setEditId(null);
   };
-
 
   return (
     <Container>
@@ -206,6 +251,7 @@ const handleEditClass = (lecture: Lecture) => {
       <Select value={hourInit} onChange={(e) => setHourInit(e.target.value)} fullWidth displayEmpty sx={{ mb: 2 }}>
         <MenuItem value="" disabled>Selecionar Horário</MenuItem>
         {schedules.map((s) => <MenuItem key={s} value={`${s}:00`}>{s}</MenuItem>)}
+
       </Select>
 
       <TextField
@@ -224,9 +270,15 @@ const handleEditClass = (lecture: Lecture) => {
         }}
       />
 
-      <Button onClick={handleAddClass} variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+      <Button
+        onClick={editId ? handleUpdateClass : handleAddClass}
+        color="primary"
+        fullWidth
+        sx={{ mt: 2 }}
+      >
         {editId ? "Atualizar Aula" : "Alocar Aula"}
       </Button>
+
 
       <TableContainer component={Paper} sx={{ mt: 4 }}>
         <Table>
@@ -254,7 +306,14 @@ const handleEditClass = (lecture: Lecture) => {
                   <IconButton onClick={() => handleEditClass(lecture)} color="primary">
                     <Edit />
                   </IconButton>
-                  <IconButton onClick={() => { setDeleteId(lecture.id || null); setOpenDialog(true); }} color="error">
+                  <IconButton
+                    onClick={() => {
+                      console.log("🗑️ Preparando exclusão para ID:", lecture.id);
+                      setDeleteId(lecture.id || null);
+                      setOpenDialog(true); 
+                    }}
+                    color="error"
+                  >
                     <Delete />
                   </IconButton>
                 </TableCell>
@@ -263,8 +322,28 @@ const handleEditClass = (lecture: Lecture) => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Tem certeza que deseja excluir esta aula?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              console.log("✅ Confirmando exclusão de aula ID:", deleteId);
+              handleDeleteClass();
+            }}
+            color="error"
+          >
+            Excluir
+          </Button>
+          <Button onClick={() => setOpenDialog(false)} color="primary">
+            Cancelar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-    </Container>
+    </Container >
   );
 };
 
