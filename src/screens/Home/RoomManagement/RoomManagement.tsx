@@ -55,7 +55,7 @@ const RoomManagement: React.FC = () => {
 
   useEffect(() => {
     console.log("🔍 Subjects carregados:", subjects);
-    subjects.forEach(subject => 
+    subjects.forEach(subject =>
       console.log(`Disciplina: ${subject.name}, Professor: ${subject.professorName ?? "Não encontrado"}`)
     );
   }, [subjects]);
@@ -116,16 +116,17 @@ const RoomManagement: React.FC = () => {
     };
 
     try {
-      console.log("📤 Tentando criar aula:", newLecture);
+      console.log("📤 Criando nova aula:", JSON.stringify(newLecture, null, 2));
       await createLecture(newLecture);
       toast.success("✅ Aula alocada com sucesso!");
-      fetchLectures();
-      resetForm();
+      fetchLectures(); 
+      resetForm(); 
     } catch (error: any) {
       console.error("❌ Erro ao criar aula:", error.message);
       toast.error(`❌ ${error.message}`);
     }
   };
+
 
 
   const handleEditClass = (lecture: Lecture) => {
@@ -137,33 +138,29 @@ const RoomManagement: React.FC = () => {
     setEditId(lecture.id || null);
   };
 
-  const handleUpdateClass = async () => { 
+  const handleUpdateClass = async () => {
     if (!editId) return;
-  
+
     const updatedLecture: Lecture = {
       subjectId,
       roomId,
-      dayOfWeek,  
+      dayOfWeek,
       hourInit,
       duration,
     };
-  
+
     try {
-      console.log("🔄 Deletando a aula antiga antes de atualizar...");
-      await deleteLecture(editId);  
-  
-      console.log("✏️ Criando nova aula...");
-      await createLecture(updatedLecture);
-  
+      console.log("🔄 Atualizando aula...");
+      await updateLecture(editId, updatedLecture);
       toast.success("✅ Aula atualizada com sucesso!");
-      fetchLectures(); 
+      fetchLectures();
       resetForm();
     } catch (error: any) {
       console.error("❌ Erro ao atualizar aula:", error.message);
       toast.error(`❌ ${error.message}`);
     }
   };
- 
+
   const handleDeleteClass = async () => {
     if (!deleteId) {
       console.error("❌ Nenhum ID para deletar!");
@@ -178,8 +175,8 @@ const RoomManagement: React.FC = () => {
       toast.success("✅ Aula excluída com sucesso!");
       fetchLectures(); // 
 
-      setOpenDialog(false); 
-      setDeleteId(null); 
+      setOpenDialog(false);
+      setDeleteId(null);
     } catch (error: any) {
       console.error("❌ Erro ao excluir aula:", error.message);
       toast.error(`❌ ${error.message}`);
@@ -269,16 +266,21 @@ const RoomManagement: React.FC = () => {
           setDuration(`PT${minutes}M`);
         }}
       />
-
       <Button
-        onClick={editId ? handleUpdateClass : handleAddClass}
+        onClick={() => {
+          if (editId) {
+            handleUpdateClass();
+          } else {
+            handleAddClass();
+          }
+        }}
+        variant="contained"
         color="primary"
         fullWidth
         sx={{ mt: 2 }}
       >
         {editId ? "Atualizar Aula" : "Alocar Aula"}
       </Button>
-
 
       <TableContainer component={Paper} sx={{ mt: 4 }}>
         <Table>
@@ -310,7 +312,7 @@ const RoomManagement: React.FC = () => {
                     onClick={() => {
                       console.log("🗑️ Preparando exclusão para ID:", lecture.id);
                       setDeleteId(lecture.id || null);
-                      setOpenDialog(true); 
+                      setOpenDialog(true);
                     }}
                     color="error"
                   >
