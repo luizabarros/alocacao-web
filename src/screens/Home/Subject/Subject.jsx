@@ -23,31 +23,21 @@ import { toast, ToastContainer } from "react-toastify";
 import { listSubjects, createSubject, updateSubject, deleteSubject, updateSubjectProfessor } from "../../../services/subjectService";
 import { getProfessors } from "../../../services/professorService";
 
+const Subject = () => {
+  const [subjects, setSubjects] = useState([]);
+  const [name, setName] = useState("");
+  const [codClass, setCodClass] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [editingSubject, setEditingSubject] = useState(null);
+  const [deleteSubjectId, setDeleteSubjectId] = useState(null);
+  const [professors, setProfessors] = useState([]);
+  const [professorId, setProfessorId] = useState(null);
 
-interface SubjectItem {
-  id: string;
-  name: string;
-  codClass: string;
-  professorId?: string | null;
-  professorName?: string;
-}
-
-export interface Professor {
-  id: string;
-  name: string;
-}
-
-
-const Subject: React.FC = () => {
-  const [subjects, setSubjects] = useState<SubjectItem[]>([]);
-  const [name, setName] = useState<string>("");
-  const [codClass, setCodClass] = useState<string>("");
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
-  const [editingSubject, setEditingSubject] = useState<SubjectItem | null>(null);
-  const [deleteSubjectId, setDeleteSubjectId] = useState<string | null>(null);
-  const [professors, setProfessors] = useState<Professor[]>([]);
-  const [professorId, setProfessorId] = useState<string | null>(null);
+  // Filtros
+  const [filterName, setFilterName] = useState("");
+  const [filterCodClass, setFilterCodClass] = useState("");
+  const [filterProfessor, setFilterProfessor] = useState("");
 
   useEffect(() => {
     fetchSubjects();
@@ -55,12 +45,12 @@ const Subject: React.FC = () => {
 
   const fetchSubjects = async () => {
     try {
-      const professorList = await getProfessors(); 
-      setProfessors(professorList); 
-  
+      const professorList = await getProfessors();
+      setProfessors(professorList);
+
       const data = await listSubjects();
-  
-      const formattedData: SubjectItem[] = data.map((subject: any) => ({
+
+      const formattedData = data.map((subject) => ({
         id: subject.id,
         name: subject.name,
         codClass: subject.codClass,
@@ -69,27 +59,34 @@ const Subject: React.FC = () => {
           ? professorList.find((p) => p.id === subject.professorId)?.name || "Sem Professor"
           : "Sem Professor",
       }));
-  
+
       setSubjects(formattedData);
     } catch (error) {
       toast.error("Erro ao carregar disciplinas.");
     }
   };
-  
 
   useEffect(() => {
     const fetchProfessors = async () => {
       try {
         const data = await getProfessors();
-        console.log("Professores carregados:", data); // ✅ Debug para ver se os dados chegam
         setProfessors(data);
       } catch (error) {
         console.error("Erro ao carregar professores:", error);
       }
     };
-  
+
     fetchProfessors();
   }, []);
+
+  // Filtro de disciplinas
+  const filteredSubjects = subjects.filter((subject) => {
+    return (
+      (filterName ? subject.name.toLowerCase().includes(filterName.toLowerCase()) : true) &&
+      (filterCodClass ? subject.codClass.toLowerCase().includes(filterCodClass.toLowerCase()) : true) &&
+      (filterProfessor ? subject.professorName.toLowerCase().includes(filterProfessor.toLowerCase()) : true)
+    );
+  });
 
   const handleAddOrEdit = async () => {
     if (!name || !codClass) {
@@ -115,7 +112,7 @@ const Subject: React.FC = () => {
     }
   };
 
-  const handleEdit = (subject: SubjectItem): void => {
+  const handleEdit = (subject) => {
     setEditingSubject(subject);
     setName(subject.name);
     setCodClass(subject.codClass);
@@ -151,12 +148,12 @@ const Subject: React.FC = () => {
     }
   };
 
-  const handleDeleteCancel = (): void => {
+  const handleDeleteCancel = () => {
     setOpenDeleteModal(false);
     resetFields();
   };
 
-  const handleAssignProfessor = async (subjectId: string, professorId: string) => {
+  const handleAssignProfessor = async (subjectId, professorId) => {
     if (!subjectId || !professorId) {
       toast.error("Selecione uma disciplina e um professor.");
       return;
@@ -165,7 +162,7 @@ const Subject: React.FC = () => {
     const updatedSubject = await updateSubjectProfessor(subjectId, professorId);
     if (updatedSubject) {
       toast.success("Professor atualizado com sucesso!");
-      fetchSubjects(); 
+      fetchSubjects();
     } else {
       toast.error("Erro ao atualizar professor.");
     }
@@ -185,9 +182,39 @@ const Subject: React.FC = () => {
         Gerenciar Disciplinas
       </Typography>
 
+      {/* Filtros */}
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" sx={{ mb: 3 }}>
+        <TextField
+          label="Filtrar por Nome"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          fullWidth
+        />
+        <TextField
+          label="Filtrar por Código"
+          value={filterCodClass}
+          onChange={(e) => setFilterCodClass(e.target.value)}
+          fullWidth
+        />
+        <FormControl fullWidth variant="outlined">
+          <InputLabel id="professor-label">Professor</InputLabel>
+          <Select
+            labelId="professor-label"
+            id="professor-select"
+            value={filterProfessor}
+            onChange={(e) => setFilterProfessor(e.target.value)}
+            label="Professor"
+          >
+            <MenuItem value="">Todos</MenuItem>
+            {professors.map((prof) => (
+              <MenuItem key={prof.id} value={prof.name}>{prof.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
+
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" sx={{ mb: 3 }}>
         <TextField label="Nome" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
-
         <FormControl fullWidth>
           <InputLabel>Código da Turma</InputLabel>
           <Select value={codClass} onChange={(e) => setCodClass(e.target.value)} label="Código da Turma">
@@ -199,17 +226,19 @@ const Subject: React.FC = () => {
           </Select>
         </FormControl>
 
-        <FormControl fullWidth>
-          <InputLabel>Professor (Opcional)</InputLabel>
-          <Select value={professorId || ""} onChange={(e) => setProfessorId(e.target.value)}>
-            <MenuItem value="">Nenhum</MenuItem> 
-            {professors.length > 0 ? (
-              professors.map((prof) => (
-                <MenuItem key={prof.id} value={prof.id}>{prof.name}</MenuItem>
-              ))
-            ) : (
-              <MenuItem disabled>Carregando...</MenuItem> 
-            )}
+        <FormControl fullWidth variant="outlined">
+          <InputLabel id="professor-label">Professor (Opcional)</InputLabel>
+          <Select
+            labelId="professor-label"
+            id="professor-select"
+            value={professorId || ""}
+            onChange={(e) => setProfessorId(e.target.value)}
+            label="Professor (Opcional)"
+          >
+            <MenuItem value="">Nenhum</MenuItem>
+            {professors.map((prof) => (
+              <MenuItem key={prof.id} value={prof.id}>{prof.name}</MenuItem>
+            ))}
           </Select>
         </FormControl>
 
@@ -221,7 +250,7 @@ const Subject: React.FC = () => {
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
         <Box sx={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          backgroundColor: "white", padding: 4, borderRadius: 2, boxShadow: 24
+          backgroundColor: "#548dbd", padding: 4, borderRadius: 2, boxShadow: 24, color: "#fff" 
         }}>
           <Typography variant="h6">
             {editingSubject ? "Editar Disciplina" : "Cadastrar Disciplina"}
@@ -246,9 +275,9 @@ const Subject: React.FC = () => {
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel>Professor (Opcional)</InputLabel>
-            <Select value={professorId || ""} onChange={(e) => setProfessorId(e.target.value)}>
+          <FormControl fullWidth sx={{ mt: 2 }} variant="outlined">
+            <InputLabel id="professor-label">Professor (Opcional)</InputLabel>
+            <Select labelId="professor-label" id="professor-select" value={professorId || ""} onChange={(e) => setProfessorId(e.target.value)}>
               <MenuItem value="">Nenhum</MenuItem>
               {professors.map((prof) => (
                 <MenuItem key={prof.id} value={prof.id}>{prof.name}</MenuItem>
@@ -276,7 +305,7 @@ const Subject: React.FC = () => {
       <Modal open={openDeleteModal} onClose={handleDeleteCancel}>
         <Box sx={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          backgroundColor: "white", padding: 4, borderRadius: 2, boxShadow: 24
+          backgroundColor: "#212121", padding: 4, borderRadius: 2, boxShadow: 24, color: "#fff" 
         }}>
           <Typography variant="h6">
             Tem certeza que deseja deletar esta disciplina?
@@ -297,11 +326,11 @@ const Subject: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {subjects.map((subject) => (
+            {filteredSubjects.map((subject) => (
               <TableRow key={subject.id}>
                 <TableCell>{subject.name}</TableCell>
                 <TableCell>{subject.codClass}</TableCell>
-                <TableCell>{subject.professorName || "Não atribuído"}</TableCell> 
+                <TableCell>{subject.professorName || "Não atribuído"}</TableCell>
                 <TableCell>
                   <Button variant="outlined" onClick={() => handleEdit(subject)} sx={{ mr: 2 }}>
                     Editar

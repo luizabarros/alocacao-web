@@ -16,23 +16,29 @@ import {
   Stack
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
-import { getRooms, createRoom, updateRoom, deleteRoom, Room } from "../../../services/roomService";
+import { getRooms, createRoom, updateRoom, deleteRoom } from "../../../services/roomService";
 
-const RoomComponent: React.FC = () => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [roomName, setRoomName] = useState<string>("");
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
-  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
+const RoomComponent = () => {
+  const [rooms, setRooms] = useState([]);
+  const [filteredRooms, setFilteredRooms] = useState([]);
+  const [roomName, setRoomName] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [editingRoom, setEditingRoom] = useState(null);
+  const [deleteRoomId, setDeleteRoomId] = useState(null);
+  const [filterName, setFilterName] = useState("");
 
   useEffect(() => {
     fetchRooms();
   }, []);
 
   useEffect(() => {
+    filterRooms();
+  }, [filterName, rooms]);
+
+  useEffect(() => {
     if (editingRoom) {
-      setRoomName(editingRoom.name); 
+      setRoomName(editingRoom.name);
     }
   }, [editingRoom]);
 
@@ -45,12 +51,24 @@ const RoomComponent: React.FC = () => {
     }
   };
 
+  const filterRooms = () => {
+    let filtered = rooms;
+
+    if (filterName) {
+      filtered = filtered.filter((room) =>
+        room.name.toLowerCase().includes(filterName.toLowerCase())
+      );
+    }
+
+    setFilteredRooms(filtered);
+  };
+
   const resetFields = () => {
     setRoomName("");
     setEditingRoom(null);
   };
 
-  const handleOpenModal = (room?: Room) => {
+  const handleOpenModal = (room) => {
     if (room) {
       setEditingRoom(room);
       setRoomName(room.name);
@@ -87,7 +105,7 @@ const RoomComponent: React.FC = () => {
     }
   };
 
-  const handleDelete = (room: Room) => {
+  const handleDelete = (room) => {
     setDeleteRoomId(room.id);
     setOpenDeleteModal(true);
   };
@@ -117,6 +135,15 @@ const RoomComponent: React.FC = () => {
         Gerenciar Salas
       </Typography>
 
+      {/* Filtro por nome */}
+      <TextField
+        label="Filtrar por nome"
+        value={filterName}
+        onChange={(e) => setFilterName(e.target.value)}
+        fullWidth
+        sx={{ mb: 3 }}
+      />
+
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" sx={{ mb: 3 }}>
         <TextField 
           label="Nome da Sala" 
@@ -138,7 +165,7 @@ const RoomComponent: React.FC = () => {
       <Modal open={openModal} onClose={handleCloseModal}>
         <Box sx={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          backgroundColor: "white", padding: 4, borderRadius: 2, boxShadow: 24
+          backgroundColor: "#548dbd", padding: 4, borderRadius: 2, boxShadow: 24, color: "#000000" 
         }}>
           <Typography variant="h6">
             {editingRoom ? "Editar Sala" : "Cadastrar Sala"}
@@ -165,7 +192,7 @@ const RoomComponent: React.FC = () => {
       <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <Box sx={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          backgroundColor: "white", padding: 4, borderRadius: 2, boxShadow: 24
+          backgroundColor: "#212121", padding: 4, borderRadius: 2, boxShadow: 24, color: "#fff" 
         }}>
           <Typography variant="h6">Tem certeza que deseja excluir esta sala?</Typography>
           <Button variant="contained" color="error" onClick={handleDeleteConfirm} sx={{ mr: 2, mt: 2 }}>Sim</Button>
@@ -182,7 +209,7 @@ const RoomComponent: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rooms.map((room) => (
+            {filteredRooms.map((room) => (
               <TableRow key={room.id}>
                 <TableCell>{room.name}</TableCell>
                 <TableCell>

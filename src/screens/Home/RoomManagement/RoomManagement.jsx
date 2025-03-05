@@ -22,27 +22,27 @@ import {
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import { toast, ToastContainer } from "react-toastify";
-import { createLecture, deleteLecture, getLectures, getDayOfWeek, updateLecture, Lecture } from "../../../services/lectureService";
+import { createLecture, deleteLecture, getLectures, getDayOfWeek, updateLecture } from "../../../services/lectureService";
 import { getRooms } from "../../../services/roomService";
 import { listSubjects } from "../../../services/subjectService";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const schedules = ["07:00", "07:50", "08:40", "09:30", "10:20", "11:10"];
 
-const RoomManagement: React.FC = () => {
+const RoomManagement = () => {
   const { token } = useAuth();
-  const [lectures, setLectures] = useState<Lecture[]>([]);
-  const [subjects, setSubjects] = useState<{ id: string; name: string; professorName?: string }[]>([]);
-  const [rooms, setRooms] = useState<{ id: string; name: string }[]>([]);
-  const [daysOfWeek, setDaysOfWeek] = useState<string[]>([]);
-  const [hourInit, setHourInit] = useState<string>("");
-  const [subjectId, setSubjectId] = useState<string>("");
-  const [roomId, setRoomId] = useState<string>("");
-  const [dayOfWeek, setDayOfWeek] = useState<string>("");
-  const [duration, setDuration] = useState<string>("PT50M");
-  const [editId, setEditId] = useState<string | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [lectures, setLectures] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [daysOfWeek, setDaysOfWeek] = useState([]);
+  const [hourInit, setHourInit] = useState("");
+  const [subjectId, setSubjectId] = useState("");
+  const [roomId, setRoomId] = useState("");
+  const [dayOfWeek, setDayOfWeek] = useState("");
+  const [duration, setDuration] = useState("PT50M");
+  const [editId, setEditId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -107,7 +107,7 @@ const RoomManagement: React.FC = () => {
       return;
     }
 
-    const newLecture: Lecture = {
+    const newLecture = {
       subjectId,
       roomId,
       dayOfWeek,
@@ -116,20 +116,18 @@ const RoomManagement: React.FC = () => {
     };
 
     try {
-      console.log("📤 Criando nova aula:", JSON.stringify(newLecture, null, 2));
       await createLecture(newLecture);
       toast.success("✅ Aula alocada com sucesso!");
       fetchLectures(); 
       resetForm(); 
-    } catch (error: any) {
-      console.error("❌ Erro ao criar aula:", error.message);
-      toast.error(`❌ ${error.message}`);
+    } catch (error) {
+      toast.error(`${error.message}`);
     }
   };
 
 
 
-  const handleEditClass = (lecture: Lecture) => {
+  const handleEditClass = (lecture) => {
     setSubjectId(lecture.subjectId);
     setRoomId(lecture.roomId);
     setDayOfWeek(lecture.dayOfWeek);
@@ -141,7 +139,7 @@ const RoomManagement: React.FC = () => {
   const handleUpdateClass = async () => {
     if (!editId) return;
 
-    const updatedLecture: Lecture = {
+    const updatedLecture = {
       subjectId,
       roomId,
       dayOfWeek,
@@ -150,12 +148,11 @@ const RoomManagement: React.FC = () => {
     };
 
     try {
-      console.log("🔄 Atualizando aula...");
       await updateLecture(editId, updatedLecture);
       toast.success("✅ Aula atualizada com sucesso!");
       fetchLectures();
       resetForm();
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Erro ao atualizar aula:", error.message);
       const errorMessage = error.response?.data?.message || "Erro ao atualizar aula.";
       toast.error(`❌ ${error.message}`);
@@ -170,52 +167,45 @@ const RoomManagement: React.FC = () => {
       return;
     }
 
-    console.log("📢 Chamando deleteLecture() para ID:", deleteId);
-
     try {
       await deleteLecture(deleteId);
-      console.log("✅ Aula excluída com sucesso!");
       toast.success("✅ Aula excluída com sucesso!");
-      fetchLectures(); // 
+      fetchLectures(); 
 
       setOpenDialog(false);
       setDeleteId(null);
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Erro ao excluir aula:", error.message);
       toast.error(`❌ ${error.message}`);
     }
   };
 
-  const handleDeleteConfirmation = (lectureId: string) => {
-    console.log("🗑️ Preparando exclusão para ID:", lectureId);
+  const handleDeleteConfirmation = (lectureId) => {
     setDeleteId(lectureId);
     setOpenDialog(true);
   };
 
-  const getSubjectName = (subjectId: string) => {
+  const getSubjectName = (subjectId) => {
     const subject = subjects.find((s) => s.id === subjectId);
     return subject ? subject.name : "Desconhecido";
   };
 
-  const getRoomName = (roomId: string) => {
+  const getRoomName = (roomId) => {
     const room = rooms.find((r) => r.id === roomId);
     return room ? room.name : "Desconhecido";
   };
 
-  const getProfessorName = (subjectId: string): string => {
+  const getProfessorName = (subjectId) => {
     if (!subjects || subjects.length === 0) {
-      console.log("⏳ Subjects ainda não carregados.");
       return "Carregando...";
     }
 
     const subject = subjects.find((s) => s.id === subjectId);
 
     if (!subject) {
-      console.log(`❌ Subject não encontrado para ID: ${subjectId}`);
       return "Não atribuído";
     }
 
-    console.log(`✅ Professor encontrado para ${subject.name}: ${subject.professorName}`);
     return subject.professorName ?? "Não atribuído";
   };
 
