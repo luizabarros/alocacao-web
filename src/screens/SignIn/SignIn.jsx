@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
@@ -14,22 +14,18 @@ import { useEffect } from "react";
 
 import { toast, ToastContainer } from "react-toastify";
 
-interface LoginFormData {
-  email: string;
-  password: string;
-}
 
-const schema: yup.ObjectSchema<LoginFormData> = yup.object().shape({
+const schema = yup.object().shape({
   email: yup.string().email("E-mail inválido").required("E-mail é obrigatório"),
   password: yup.string().required("Senha é obrigatória"),
 });
 
-const Login: React.FC = () => {
+const Login = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>({
+  } = useForm({
     resolver: yupResolver(schema),
   });
 
@@ -42,14 +38,13 @@ const Login: React.FC = () => {
     }
   }, [navigate, token]);
 
-  const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
+  const onSubmit = async (data) => {
     try {
-      console.log("Enviando dados para login:", data);
       await login(data.email, data.password);
       toast.success("Login feito com sucesso");
 
       setTimeout(() => navigate("/dashboard"), 1000);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao fazer login:", error);
       const errorMessage = error.response?.data?.message || "Erro ao autenticar.";
       toast.error(errorMessage, {

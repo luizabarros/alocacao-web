@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Room, getRooms } from "../../../services/roomService";
+import { getRooms } from "../../../services/roomService";
 import { listSubjects } from "../../../services/subjectService";
 import { getProfessors } from "../../../services/professorService";
-import { getDayOfWeek, getLectures, Lecture } from "../../../services/lectureService";
+import { getDayOfWeek, getLectures } from "../../../services/lectureService";
 
 import {
   Typography,
@@ -28,11 +28,11 @@ const Dashboard = () => {
   const [roomFilter, setRoomFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [teacherFilter, setTeacherFilter] = useState("");
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [subjects, setSubjects] = useState<{ id: string; name: string; professorName?: string; codClass: string }[]>([]);
-  const [professors, setProfessors] = useState<string[]>([]);
-  const [lectures, setLectures] = useState<Lecture[]>([]);
-  const [daysOfWeek, setDaysOfWeek] = useState<string[]>([]);
+  const [rooms, setRooms] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [professors, setProfessors] = useState([]);
+  const [lectures, setLectures] = useState([]);
+  const [daysOfWeek, setDaysOfWeek] = useState([]);
 
   const timeslots = ["07:00", "07:50", "08:40", "09:30", "10:20", "11:10"];
 
@@ -90,7 +90,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const data: Room[] = await getRooms();
+        const data = await getRooms();
         setRooms(data);
       } catch (error) {
         console.error("Erro ao buscar salas:", error);
@@ -159,9 +159,15 @@ const Dashboard = () => {
       </Box>
 
       <Box display="flex" gap={2} marginTop={4}>
-        <FormControl fullWidth>
-          <InputLabel>Filtro por sala</InputLabel>
-          <Select value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)}>
+        <FormControl fullWidth variant="outlined">
+          <InputLabel id="room-filter-label">Filtro por sala</InputLabel>
+          <Select 
+            labelId="room-filter-label"
+            id="room-filter"
+            label="Filtro por sala" 
+            value={roomFilter} 
+            onChange={(e) => setRoomFilter(e.target.value)}
+          >
             <MenuItem value="">Todos</MenuItem>
             {rooms.map((room) => (
               <MenuItem key={room.id} value={room.id}>
@@ -171,10 +177,16 @@ const Dashboard = () => {
           </Select>
         </FormControl>
 
-        <FormControl fullWidth>
-          <InputLabel>Filtro por disciplina</InputLabel>
-          <Select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}>
-            <MenuItem value="">Todas</MenuItem>
+        <FormControl fullWidth variant="outlined">
+          <InputLabel id="subject-filter-label">Filtro por disciplina</InputLabel>
+          <Select 
+            labelId="subject-filter-label"
+            id="subject-filter" 
+            label="Filtro por disciplina" 
+            value={subjectFilter} 
+            onChange={(e) => setSubjectFilter(e.target.value)}
+          >
+            <MenuItem value="">Todos</MenuItem>
             {subjects.map((subject) => (
               <MenuItem key={subject.id} value={subject.id}>
                 {subject.name}
@@ -183,9 +195,15 @@ const Dashboard = () => {
           </Select>
         </FormControl>
 
-        <FormControl fullWidth>
-          <InputLabel>Filtro por professor</InputLabel>
-          <Select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value)}>
+        <FormControl fullWidth variant="outlined">
+          <InputLabel id="teacher-filter-label">Filtro por professor</InputLabel>
+          <Select 
+            labelId="teacher-filter-label" 
+            id="teacher-filter"
+            label="Filtro por professor"
+            value={teacherFilter} 
+            onChange={(e) => setTeacherFilter(e.target.value)}
+          >
             <MenuItem value="">Todos</MenuItem>
             {professors.map((teacher) => (
               <MenuItem key={teacher} value={teacher}>

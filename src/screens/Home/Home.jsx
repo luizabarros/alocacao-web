@@ -26,38 +26,34 @@ import Dashboard from './Dashboard/Dashboard';
 import RoomManagement from './RoomManagement/RoomManagement';
 import Subject from './Subject/Subject';
 import Room from './Room/Room';
+import Professor from './Professor/Professor';
 
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
-interface MenuItemType {
-  name: string;
-  label: string;
-  isAdminScreen: boolean;
-}
-
-const HomePage: React.FC = () => {
+const HomePage = () => {
   const drawerWidth = 240;
-  const [open, setOpen] = useState<boolean>(false);
-  const [selectedItem, setSelectedItem] = useState<string>("home");
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState("home");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const { logout, isAdmin } = useAuth();
 
-  const menuItems: MenuItemType[] = [
+  const menuItems = [
     { name: "home", label: "Home", isAdminScreen: false },
     { name: "gerenciar-salas", label: "Gerenciamento das Alocações", isAdminScreen: false },
     { name: "disciplina", label: "Disciplinas", isAdminScreen: true },
     { name: "sala", label: "Salas", isAdminScreen: true },
+    { name: "professor", label: "Professores", isAdminScreen: true },
     { name: "sair", label: "Sair", isAdminScreen: false },
   ];
 
-  const toggleDrawer = (): void => {
+  const toggleDrawer = () => {
     setOpen(!open); 
   };
 
-  const handleItemClick = (item: MenuItemType): void => {
+  const handleItemClick = (item) => {
     setSelectedItem(item.name);
     setOpen(false); 
   
@@ -66,16 +62,16 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const handleCloseDialog = (): void => {
+  const handleCloseDialog = () => {
     setOpenDialog(false);
   };
 
-  const handleLogout = (): void => {
+  const handleLogout = () => {
     logout();
     setOpenDialog(false);
   };
 
-  const handleThemeChange = (): void => {
+  const handleThemeChange = () => {
     setIsDarkMode(!isDarkMode);
   };
 
@@ -142,6 +138,7 @@ const HomePage: React.FC = () => {
           {selectedItem === "home" ? <Dashboard /> :
            selectedItem === "gerenciar-salas" ? <RoomManagement /> :
            selectedItem === "disciplina" ? <Subject/> :
+           selectedItem === "professor" ? <Professor /> :
            selectedItem === "sala" ? <Room/> : null}
         </Box>
 
