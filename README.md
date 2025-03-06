@@ -8,5 +8,5 @@ Login padrão (admin):
 Admin@123
 
 Executar o front:
-Instalar as dependências: npm install ou npm i
+Instalar as dependências: npm install ou npm i <br/>
 Executar o sistema: npm run dev
