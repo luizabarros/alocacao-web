@@ -70,7 +70,7 @@ export const updateLecture = async (lectureId, lecture) => {
   };
 
   try {
-    const response = await axios.put<Lecture>(`${API_URL}/${lectureId}`, formattedLecture, getAuthHeaders()); 
+    const response = await axios.put(`${API_URL}/${lectureId}`, formattedLecture, getAuthHeaders()); 
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || "Erro ao atualizar aula.");
