@@ -54,7 +54,6 @@ const RoomManagement = () => {
   }, [token]);
 
   useEffect(() => {
-    console.log("🔍 Subjects carregados:", subjects);
     subjects.forEach(subject =>
       console.log(`Disciplina: ${subject.name}, Professor: ${subject.professorName ?? "Não encontrado"}`)
     );
@@ -101,9 +100,25 @@ const RoomManagement = () => {
     }
   };
 
+  const extractMinutes = (duration) => {
+    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+    const matches = duration.match(regex);
+  
+    const hours = matches[1] ? parseInt(matches[1], 10) : 0;
+    const minutes = matches[2] ? parseInt(matches[2], 10) : 0;
+    const seconds = matches[3] ? parseInt(matches[3], 10) : 0;
+  
+    return hours * 60 + minutes + Math.round(seconds / 60);
+  };
+
   const handleAddClass = async () => {
     if (!subjectId || !roomId || !dayOfWeek || !hourInit || !duration) {
       toast.error("⚠️ Todos os campos são obrigatórios!");
+      return;
+    }
+
+    if (extractMinutes(duration) % 50 !== 0) {
+      toast.error("A duração deve ser múltipla de 50 minutos.");
       return;
     }
 
@@ -146,6 +161,11 @@ const RoomManagement = () => {
       hourInit,
       duration,
     };
+
+    if (extractMinutes(duration) % 50 !== 0) {
+      toast.error("A duração deve ser múltipla de 50 minutos.");
+      return;
+    }
 
     try {
       await updateLecture(editId, updatedLecture);
@@ -249,13 +269,9 @@ const RoomManagement = () => {
         type="number"
         fullWidth
         sx={{ mb: 2 }}
-        value={duration ? parseInt(duration.replace("PT", "").replace("M", ""), 10) : ""}
+        value={duration ? extractMinutes(duration) : ""}
         onChange={(e) => {
           const minutes = Number(e.target.value);
-          if (minutes % 50 !== 0) {
-            toast.error("A duração deve ser múltipla de 50 minutos.");
-            return;
-          }
           setDuration(`PT${minutes}M`);
         }}
       />

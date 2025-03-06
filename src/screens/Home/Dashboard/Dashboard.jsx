@@ -36,7 +36,6 @@ const Dashboard = () => {
 
   const timeslots = ["07:00", "07:50", "08:40", "09:30", "10:20", "11:10"];
 
-
   const filteredClasses = lectures
     .map((lecture) => {
       const subject = subjects.find((s) => s.id === lecture.subjectId);
@@ -44,7 +43,7 @@ const Dashboard = () => {
         ...lecture,
         subjectName: subject?.name || "Sem nome",
         teacher: subject?.professorName || "Não atribuído",
-        codClass: subject?.codClass || "Sem turma", 
+        codClass: subject?.codClass || "Sem turma",
         dayOfWeek: lecture.dayOfWeek.toUpperCase(),
         hourInit: lecture.hourInit.substring(0, 5),
       };
@@ -53,7 +52,7 @@ const Dashboard = () => {
       return (
         (roomFilter === "" || cls.roomId === roomFilter) &&
         (subjectFilter === "" || cls.subjectId === subjectFilter) &&
-        (teacherFilter === "" || cls.teacher.toLowerCase() === teacherFilter.toLowerCase()) 
+        (teacherFilter === "" || cls.teacher.toLowerCase() === teacherFilter.toLowerCase())
       );
     });
 
@@ -106,7 +105,7 @@ const Dashboard = () => {
         const data = await listSubjects();
         setSubjects(data.map((subject) => ({
           ...subject,
-          professorName: subject.professorName || "Não atribuído", 
+          professorName: subject.professorName || "Não atribuído",
         })));
       } catch (error) {
         console.error("Erro ao buscar disciplinas:", error);
@@ -128,7 +127,6 @@ const Dashboard = () => {
     };
     fetchProfessors();
   }, []);
-
 
   const cardStyle = { backgroundColor: "#00b4d8" };
 
@@ -161,11 +159,11 @@ const Dashboard = () => {
       <Box display="flex" gap={2} marginTop={4}>
         <FormControl fullWidth variant="outlined">
           <InputLabel id="room-filter-label">Filtro por sala</InputLabel>
-          <Select 
+          <Select
             labelId="room-filter-label"
             id="room-filter"
-            label="Filtro por sala" 
-            value={roomFilter} 
+            label="Filtro por sala"
+            value={roomFilter}
             onChange={(e) => setRoomFilter(e.target.value)}
           >
             <MenuItem value="">Todos</MenuItem>
@@ -179,11 +177,11 @@ const Dashboard = () => {
 
         <FormControl fullWidth variant="outlined">
           <InputLabel id="subject-filter-label">Filtro por disciplina</InputLabel>
-          <Select 
+          <Select
             labelId="subject-filter-label"
-            id="subject-filter" 
-            label="Filtro por disciplina" 
-            value={subjectFilter} 
+            id="subject-filter"
+            label="Filtro por disciplina"
+            value={subjectFilter}
             onChange={(e) => setSubjectFilter(e.target.value)}
           >
             <MenuItem value="">Todos</MenuItem>
@@ -197,11 +195,11 @@ const Dashboard = () => {
 
         <FormControl fullWidth variant="outlined">
           <InputLabel id="teacher-filter-label">Filtro por professor</InputLabel>
-          <Select 
-            labelId="teacher-filter-label" 
+          <Select
+            labelId="teacher-filter-label"
             id="teacher-filter"
             label="Filtro por professor"
-            value={teacherFilter} 
+            value={teacherFilter}
             onChange={(e) => setTeacherFilter(e.target.value)}
           >
             <MenuItem value="">Todos</MenuItem>
@@ -229,17 +227,18 @@ const Dashboard = () => {
               <TableRow key={time}>
                 <TableCell>{time}</TableCell>
                 {daysOfWeek.map((day) => {
-                  const classInfo = filteredClasses.find(
+                  const classInfos = filteredClasses.filter(
                     (cls) => cls.dayOfWeek === day.toUpperCase() && cls.hourInit === time
                   );
 
                   return (
                     <TableCell key={day}>
-                      {classInfo ? (
-                        <>
-                          <Typography variant="body1">{classInfo.subjectName}</Typography>
-                          <Typography variant="caption">{classInfo.codClass}</Typography> 
-                        </>
+                      {classInfos.length > 0 ? (
+                        classInfos.map((classInfo, index) => (
+                          <Typography key={index} variant="body1">
+                            {classInfo.subjectName} - {classInfo.codClass}
+                          </Typography>
+                        ))
                       ) : (
                         "-"
                       )}
@@ -249,7 +248,6 @@ const Dashboard = () => {
               </TableRow>
             ))}
           </TableBody>
-
         </Table>
       </TableContainer>
     </Container>
